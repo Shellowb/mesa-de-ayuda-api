@@ -29,6 +29,7 @@ def instance_list(request):
     instance_data = JSONParser().parse(request)
     instance_serializer = InstanceSerializer(data=instance_data)
     if instance_serializer.is_valid():
+      print(instance_serializer)
       instance_serializer.save()
       return JsonResponse(instance_serializer.data, status=status.HTTP_201_CREATED) 
     return JsonResponse(instance_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

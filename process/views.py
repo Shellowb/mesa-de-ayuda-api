@@ -26,6 +26,7 @@ def process_list(request):
     process_data = JSONParser().parse(request)
     process_serializer = ProcessSerializer(data=process_data)
     if process_serializer.is_valid():
+      print(process_serializer)
       process_serializer.save()
       return JsonResponse(process_serializer.data, status=status.HTTP_201_CREATED) 
     return JsonResponse(process_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
