@@ -102,6 +102,7 @@ WSGI_APPLICATION = 'API.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
@@ -114,7 +115,15 @@ DATABASES = {
         },
     }
 }
-
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'mesa_de_ayuda_db',
+        'HOST': '127.0.0.1',
+        'PORT': 27017,
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
