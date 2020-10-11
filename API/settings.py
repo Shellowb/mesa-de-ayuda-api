@@ -102,7 +102,6 @@ WSGI_APPLICATION = 'API.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
@@ -124,6 +123,7 @@ DATABASES = {
         'PORT': 27017,
     }
 }
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
