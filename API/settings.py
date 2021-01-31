@@ -49,8 +49,12 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'rest_auth.registration',
     'process.apps.ProcessConfig',
+    'Profile.apps.ProfileConfig',
     'faq.apps.FaqConfig',
     'instances.apps.InstancesConfig',
+    'category.apps.CategoryConfig',
+    'bot.apps.BotConfig',
+    'channels'
 ]
 
 SITE_ID = 1
@@ -71,11 +75,27 @@ MIDDLEWARE = [
 ALLOWED_HOSTS = [
   'mesadeayudadcc.herokuapp.com',
   '127.0.0.1',
-  'https://5f82543f42c40bd380fa3368--clever-dijkstra-5e537d.netlify.app/',
-  ]
+  'localhost',
+  '877d4f001a56.ngrok.io',
+  'fresh-skunk-51.loca.lt',
+  '0ae4a7c3206e.ngrok.io',
+  'wicked-frog-16.loca.lt',
+  '28f4dcf999c4.ngrok.io',
+  '8a52de9f4247.ngrok.io'
+]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://1867dd2e50cb.ngrok.io',
+    'https://yellow-dolphin-60.loca.lt',
+    'https://120b845de1ca.ngrok.io',
+    'https://877d4f001a56.ngrok.io',
+    'https://fresh-skunk-51.loca.lt',
+    'https://0ae4a7c3206e.ngrok.io',
+    'https://wicked-frog-16.loca.lt',
+    'https://28f4dcf999c4.ngrok.io',
+    'https://8a52de9f4247.ngrok.io'
 )
 
 ROOT_URLCONF = 'API.urls'
@@ -97,11 +117,20 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'API.wsgi.application'
+ASGI_APPLICATION = "API.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
@@ -118,12 +147,12 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'mesa_de_ayuda_db',
+        'NAME': 'mesa_de_ayuda_dev',
         'HOST': '127.0.0.1',
         'PORT': 27017,
     }
 }
-"""
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -149,9 +178,13 @@ REST_FRAMEWORK = {
   'rest_framework.authentication.TokenAuthentication',
   'rest_framework.authentication.BasicAuthentication',
  ),
- 'DEFAULT_PERMISSION_CLASSES': (
-  'rest_framework.permissions.IsAuthenticated',
- )
+ 'DEFAULT_PERMISSION_CLASSES': [
+    'rest_framework.permissions.IsAuthenticated',
+  ]
+}
+
+REST_AUTH_SERIALIZERS = {
+  'USER_DETAILS_SERIALIZER': 'Profile.serializers.UserSerializer'
 }
 
 # Internationalization
@@ -172,5 +205,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+  os.path.join(BASE_DIR, 'static')
+]
 APPEND_SLASH = False
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'noreplay.mesadcc@gmail.com'
+EMAIL_HOST_PASSWORD = 'mesaDCC2020'

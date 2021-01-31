@@ -9,7 +9,9 @@ urlpatterns = [
   path('novedades/<id_news>', views.news_detail),
   path('publicados', views.instance_list_published),
   path('<id_instance>', views.instance_detail),
+  path('<id_instance>/publicado', views.instance_detail_published),
   path('<id_instance>/etapas', views.instance_list_steps),
   path('<id_instance>/novedades', views.instance_list_news),
   path('<id_process>/instancias', views.process_list_instances),
+  path('<id_process>/instancias/publicados', views.process_list_instances_published),
 ]

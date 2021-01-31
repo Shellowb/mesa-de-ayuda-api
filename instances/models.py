@@ -1,5 +1,6 @@
 from django.db import models
 from process.models import Process
+from django.contrib.auth.models import User
 
 class Instance(models.Model):
   name = models.CharField(max_length=200, blank=False, default='')
@@ -7,7 +8,8 @@ class Instance(models.Model):
   last_update = models.DateTimeField(auto_now=True)
   published = models.BooleanField(default=True)
   process = models.ForeignKey(Process, on_delete=models.CASCADE, default=None)
-  #created_by = createdBy = models.ForeignKey(User)
+  created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='instance_created_by')
+  updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='instance_updated_by')
 
 class Steps(models.Model):
   start_date = models.DateTimeField()
@@ -17,11 +19,13 @@ class Steps(models.Model):
   instance = models.ForeignKey(Instance, on_delete=models.CASCADE, default=None)
   created_at = models.DateTimeField(auto_now_add=True)
   last_update = models.DateTimeField(auto_now=True)
-  #created_by = createdBy = models.ForeignKey(User)
+  created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_created_by')
+  updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_updated_by')
 
 class News(models.Model):
   description = models.TextField(blank=False, default='')
   instance = models.ForeignKey(Instance, on_delete=models.CASCADE, default=None)
   created_at = models.DateTimeField(auto_now_add=True)
   last_update = models.DateTimeField(auto_now=True)
-  #created_by = createdBy = models.ForeignKey(User)
+  created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='news_created_by')
+  updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='news_updated_by')

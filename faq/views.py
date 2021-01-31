@@ -1,15 +1,17 @@
 from django.shortcuts import render
 from django.http.response import JsonResponse
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 from faq.models import FAQs
-from faq.serializers import FAQSerializer
+from faq.serializers import FAQSerializer, FAQRetriveSerializer
 
 @api_view(['GET', 'POST', 'DELETE'])
-@authentication_classes([])
-@permission_classes([])
+@authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def faq_list(request):
   """
     GET list of questions
@@ -19,11 +21,13 @@ def faq_list(request):
   if request.method == 'GET':
     faqs = FAQs.objects.all().order_by('-created_at')
     
-    faqs_serializer = FAQSerializer(faqs, many=True)
+    faqs_serializer = FAQRetriveSerializer(faqs, many=True)
     return JsonResponse(faqs_serializer.data, safe=False)
 
   elif request.method == 'POST':
     faq_data = JSONParser().parse(request)
+    faq_data['created_by'] = request.user.id
+    faq_data['updated_by'] = request.user.id
     faq_serializer = FAQSerializer(data=faq_data)
     if faq_serializer.is_valid():
       faq_serializer.save()
@@ -41,15 +45,15 @@ def faq_list_published(request):
   """
     GET all published FAQs
   """
-  faqs = FAQscess.objects.filter(published=True).order_by('-created_at')
+  faqs = FAQs.objects.filter(published=True).order_by('-created_at')
         
   if request.method == 'GET': 
     faqs_serializer = FAQSerializer(faqs, many=True)
     return JsonResponse(faqs_serializer.data, safe=False)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@authentication_classes([])
-@permission_classes([])
+@authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def faq_detail(request, id_faq):
   """
     GET a FAQ
@@ -64,11 +68,12 @@ def faq_detail(request, id_faq):
     return JsonResponse({'message': 'The question does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
   if request.method == 'GET': 
-    faq_serializer = FAQSerializer(faq) 
+    faq_serializer = FAQRetriveSerializer(faq) 
     return JsonResponse(faq_serializer.data) 
   
   elif request.method == 'PUT': 
     faq_data = JSONParser().parse(request) 
+    faq_data['updated_by'] = request.user.id
     faq_serializer = FAQSerializer(faq, data=faq_data) 
     if faq_serializer.is_valid(): 
       faq_serializer.save() 
@@ -81,8 +86,8 @@ def faq_detail(request, id_faq):
 
 
 @api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
+@authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def process_list_faq(request, id_process):
   """
     GET a FAQ asociated to a process
@@ -90,6 +95,58 @@ def process_list_faq(request, id_process):
   faqs = FAQs.objects.filter(process=id_process).order_by('-created_at')
         
   if request.method == 'GET': 
-    faqs_serializer = FAQSerializer(faqs, many=True)
+    faqs_serializer = FAQRetriveSerializer(faqs, many=True)
     return JsonResponse(faqs_serializer.data, safe=False)
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
+def process_published_list_faq(request, id_process):
+  """
+    GET a FAQ asociated to a process
+  """
+  faqs = FAQs.objects.filter(process=id_process).filter(published=True).order_by('-created_at')
+        
+  if request.method == 'GET': 
+    faqs_serializer = FAQRetriveSerializer(faqs, many=True)
+    return JsonResponse(faqs_serializer.data, safe=False)
+
+
+@api_view(['PUT'])
+@authentication_classes([])
+@permission_classes([])
+def like_faq(request, id_faq):
+  """
+    Like a FAQ asociated to a process
+  """
+  try: 
+    faq = FAQs.objects.get(pk=id_faq)
+  except FAQs.DoesNotExist:
+    return JsonResponse({'message': 'The question does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+  if request.method == 'PUT': 
+    faq_serializer = FAQSerializer(faq, data={'likes': FAQSerializer(faq).data['likes'] + 1}) 
+    if faq_serializer.is_valid(): 
+      faq_serializer.save() 
+      return JsonResponse(faq_serializer.data) 
+    return JsonResponse(faq_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+@api_view(['PUT'])
+@authentication_classes([])
+@permission_classes([])
+def dislike_faq(request, id_faq):
+  """
+    Like a FAQ asociated to a process
+  """
+  try: 
+    faq = FAQs.objects.get(pk=id_faq)
+  except FAQs.DoesNotExist:
+    return JsonResponse({'message': 'The question does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+  if request.method == 'PUT': 
+    faq_serializer = FAQSerializer(faq, data={'dislikes': FAQSerializer(faq).data['dislikes'] + 1}) 
+    if faq_serializer.is_valid(): 
+      faq_serializer.save() 
+      return JsonResponse(faq_serializer.data) 
+    return JsonResponse(faq_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
