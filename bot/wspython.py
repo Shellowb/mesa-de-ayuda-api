@@ -2,10 +2,13 @@ import asyncio
 import threading
 import websockets
 import json
+import os
+
+URL_WEBSOCKET = os.environ.get('URL_WEBSOCKET')
 
 class Wspython(threading.Thread):
   async def send_to_websocket(self, chat_id, message):
-    async with websockets.connect(f'ws://localhost:8000/ws/chat/{chat_id}/') as websocket:
+    async with websockets.connect(f'ws://{URL_WEBSOCKET}/ws/chat/{chat_id}/') as websocket:
       try:
         context = json.dumps({"message": message, "bot": True, "command": "new_message"})
         await websocket.send(context)

@@ -33,7 +33,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
   async def fetch_messages(self):
     for message in await self.get_messages():
       await self.send(text_data=json.dumps({
-        'message': message.text
+        'message': message.text,
+        'fromTelegram': message.fromTelegram,
       }))
 
   async def new_message(self, message, bot=False):

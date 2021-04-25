@@ -13,7 +13,7 @@ from category.serializers import CategorySerializer
 from faq.models import FAQs
 from faq.serializers import FAQSerializer
 from django.core.mail import send_mail
-from API.settings import EMAIL_HOST_USER
+from API.settings import EMAIL_HOST_USER, BOT_TOKEN
 
 import requests
 from django.views import View
@@ -25,14 +25,12 @@ from django.utils.safestring import mark_safe
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.contrib.auth.models import User
 
 from bot.models import Chat, Messages
 from bot.serializers import ChatSerializer, MessagesSerializer
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
-BOT_TOKEN = os.getenv("BOT_TOKEN", "error_token")
-BOT_TOKEN = '1315847987:AAFl5PFOoQRSlqDrpD5HE6jTIft2fyN7LjA'
-
 
 def index(request):
     return render(request, 'chat/index.html', {})
@@ -41,6 +39,18 @@ def room(request, room_name):
     return render(request, 'chat/room.html', {
         'room_name': room_name
     })
+
+def send_mail_notification(message, chat):
+  first_name = chat['first_name']
+  last_name = chat['last_name']
+  emails = User.objects.filter(is_active=True).exclude(email='').values_list('email', flat=True)
+  send_mail(
+    'Nuevo mensaje en Mesa de Ayuda DCC',
+    f'Hay un nuevo mensaje en el chat de Mesa de Ayuda DCC\nDe: {first_name} {last_name}\nMensaje: {message}',
+    EMAIL_HOST_USER,
+    emails,
+    fail_silently=False
+  )
 
 @api_view(['GET'])
 @authentication_classes([])
@@ -55,9 +65,22 @@ def chat_list(request):
     chats_serializer = ChatSerializer(chats, many=True)
     return JsonResponse(chats_serializer.data, safe=False)
 
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
+def first_message(request, id_chat):
+  """
+    GET first message
+  """
+  if request.method == 'GET':
+    message = Messages().last_messages(id_chat, 1)
+    message_serializer = MessagesSerializer(message, many=True)
+    return JsonResponse(message_serializer.data, safe=False)
+
+
 class BotView(View):
   def post(self, request, *args, **kwargs):
-    
     t_data = json.loads(request.body)
     label = None
     question=None
@@ -102,7 +125,6 @@ class BotView(View):
           {"text": 'Okey, te contactare con un@ asistente. Por favor ingresa tu consulta acontinuación', "keyboard": {}}
         ]
       else:
-        print("in defualt")
         self.send_message_website(message, t_chat)
         messages = [
           {"text": 'He enviado el mensaje a nuestrxs asistentes, en breve te responderemos por este canal', "keyboard": {}}
@@ -224,9 +246,13 @@ class BotView(View):
         chat_serializer.save()
         chat = chat_serializer.data
 
-    ws = Wspython()
-    ws.send(t_chat["id"], message)
-    #send_mail('Nuevo mensaje en Mesa de Ayuda DCC', 'Hay un nuevo mensaje en el chat de Mesa de Ayuda DCC', EMAIL_HOST_USER, ['23pablo97@gmail.com'], fail_silently=False)
+    try:
+      ws = Wspython()
+      ws.send(t_chat["id"], message)
+      send_mail_notification(message, chat)
+    except Exception as e:
+      print(e)
+      print('I had some problems')
 
   @staticmethod
   def send_message(message, chat_id, keyboard_button={}):
@@ -237,10 +263,7 @@ class BotView(View):
       "parse_mode": "Markdown",
       'reply_markup': (None, keyboard)
     }
-    print(data)
-    print(f"{TELEGRAM_URL}{BOT_TOKEN}/sendMessage")
     response = requests.post(
       f"{TELEGRAM_URL}{BOT_TOKEN}/sendMessage", data=data
     )    
     res = response.json()
-    print(res)

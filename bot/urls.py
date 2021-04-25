@@ -7,4 +7,5 @@ urlpatterns = [
   path('chatbot', views.index, name='index'),
   path('chatbot/<str:room_name>/', views.room, name='room'),
   path('chats/', views.chat_list, name='chats'),
+  path('chats/<id_chat>', views.first_message, name='chats'),
 ]

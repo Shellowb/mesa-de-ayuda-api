@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from pathlib import Path
 import os
 
+import environ
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+# reading .env file
+environ.Env.read_env()
+
+BOT_TOKEN = env('BOT_TOKEN')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,9 +35,6 @@ SECRET_KEY = '_%_dh44qexc$uc#r^fw5u507!s5*unxwxfx5eyb%^#c(sf(!qq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -72,30 +79,18 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
+API_URL = env('API_URL')
+
 ALLOWED_HOSTS = [
-  'mesadeayudadcc.herokuapp.com',
   '127.0.0.1',
   'localhost',
-  '877d4f001a56.ngrok.io',
-  'fresh-skunk-51.loca.lt',
-  '0ae4a7c3206e.ngrok.io',
-  'wicked-frog-16.loca.lt',
-  '28f4dcf999c4.ngrok.io',
-  '8a52de9f4247.ngrok.io'
+  f'{API_URL}',
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'https://1867dd2e50cb.ngrok.io',
-    'https://yellow-dolphin-60.loca.lt',
-    'https://120b845de1ca.ngrok.io',
-    'https://877d4f001a56.ngrok.io',
-    'https://fresh-skunk-51.loca.lt',
-    'https://0ae4a7c3206e.ngrok.io',
-    'https://wicked-frog-16.loca.lt',
-    'https://28f4dcf999c4.ngrok.io',
-    'https://8a52de9f4247.ngrok.io'
+    f'https://{API_URL}',
 )
 
 ROOT_URLCONF = 'API.urls'
@@ -130,26 +125,12 @@ CHANNEL_LAYERS = {
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-"""
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'CLIENT': {
-           'name': 'mesa_de_ayuda_dev',
-           'host': 'mongodb+srv://usuario1:mesadeayudadcc@cluster0.b6rza.mongodb.net/mesa_de_ayuda_dev?retryWrites=true&w=majority',
-           'username': 'usuario1',
-           'password': 'mesadeayudadcc',
-           'authMechanism': 'SCRAM-SHA-1',
-        },
-    }
-}
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'mesa_de_ayuda_dev',
-        'HOST': '127.0.0.1',
-        'PORT': 27017,
+        'NAME': env('DB_NAME'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
@@ -205,7 +186,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
   os.path.join(BASE_DIR, 'static')
 ]
@@ -216,5 +196,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'noreplay.mesadcc@gmail.com'
-EMAIL_HOST_PASSWORD = 'mesaDCC2020'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
