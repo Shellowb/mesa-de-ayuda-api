@@ -18,10 +18,8 @@
             + roomName
             + '/';
 
-        console.log(uri);
         const chatSocket = new WebSocket(uri);
         chatSocket.onopen = () => {
-          console.log('CONECTADO');
           chatSocket.send(JSON.stringify({
             'message': '',
             'bot': false,
@@ -30,7 +28,6 @@
         };
 
         chatSocket.onmessage = function(e) {
-            console.log(e);
             const data = JSON.parse(e.data);
             document.querySelector('#chat-log').value += (data.message + '\n');
         };
