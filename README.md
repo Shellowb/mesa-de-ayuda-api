@@ -21,7 +21,7 @@ mesa-de-ayuda-api > API > .env
 ## Instalar dependencias
 
 Entrar al ambiente de desarrollo
-````
+```
 source env/bin/activate
 ```
 
