@@ -24,6 +24,7 @@ else:
 try:
     _cmp = cmp
 except NameError:
+
     def _cmp(a, b):
         """
         Compare two objects.
@@ -96,6 +97,7 @@ def _comparable(klass):
     klass.__ne__ = __ne__
     return klass
 
+
 #
 # Versioning
 #
@@ -106,6 +108,7 @@ class _inf(object):
     """
     An object that is bigger than all other objects.
     """
+
     def __cmp__(self, other):
         """
         @param other: Another object.
@@ -137,8 +140,18 @@ class Version(object):
     This class supports the standard major.minor.micro[rcN] scheme of
     versioning.
     """
-    def __init__(self, package, major, minor, micro, release_candidate=None,
-                 prerelease=None, dev=None):
+
+    def __init__(
+        self,
+        package,
+        major,
+        minor,
+        micro,
+        release_candidate=None,
+        prerelease=None,
+        post=None,
+        dev=None,
+    ):
         """
         @param package: Name of the package that this is a version of.
         @type package: C{str}
@@ -152,6 +165,8 @@ class Version(object):
         @type release_candidate: C{int}
         @param prerelease: The prerelease number. (Deprecated)
         @type prerelease: C{int}
+        @param post: The postrelease number.
+        @type post: C{int}
         @param dev: The development release number.
         @type dev: C{int}
         """
@@ -159,29 +174,41 @@ class Version(object):
             raise ValueError("Please only return one of these.")
         elif prerelease and not release_candidate:
             release_candidate = prerelease
-            warnings.warn(("Passing prerelease to incremental.Version was "
-                           "deprecated in Incremental 16.9.0. Please pass "
-                           "release_candidate instead."),
-                          DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                (
+                    "Passing prerelease to incremental.Version was "
+                    "deprecated in Incremental 16.9.0. Please pass "
+                    "release_candidate instead."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if major == "NEXT":
-            if minor or micro or release_candidate or dev:
-                raise ValueError(("When using NEXT, all other values except "
-                                  "Package must be 0."))
+            if minor or micro or release_candidate or post or dev:
+                raise ValueError(
+                    ("When using NEXT, all other values except " "Package must be 0.")
+                )
 
         self.package = package
         self.major = major
         self.minor = minor
         self.micro = micro
         self.release_candidate = release_candidate
+        self.post = post
         self.dev = dev
 
     @property
     def prerelease(self):
-        warnings.warn(("Accessing incremental.Version.prerelease was "
-                       "deprecated in Incremental 16.9.0. Use "
-                       "Version.release_candidate instead."),
-                      DeprecationWarning, stacklevel=2),
+        warnings.warn(
+            (
+                "Accessing incremental.Version.prerelease was "
+                "deprecated in Incremental 16.9.0. Use "
+                "Version.release_candidate instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        ),
         return self.release_candidate
 
     def public(self):
@@ -201,17 +228,19 @@ class Version(object):
         if self.release_candidate is None:
             rc = ""
         else:
-            rc = "rc%s" % (self.release_candidate,)
+            rc = ".rc%s" % (self.release_candidate,)
+
+        if self.post is None:
+            post = ""
+        else:
+            post = ".post%s" % (self.post,)
 
         if self.dev is None:
             dev = ""
         else:
-            dev = "dev%s" % (self.dev,)
+            dev = ".dev%s" % (self.dev,)
 
-        return '%r.%d.%d%s%s' % (self.major,
-                                 self.minor,
-                                 self.micro,
-                                 rc, dev)
+        return "%r.%d.%d%s%s%s" % (self.major, self.minor, self.micro, rc, post, dev)
 
     base = public
     short = public
@@ -222,36 +251,45 @@ class Version(object):
         if self.release_candidate is None:
             release_candidate = ""
         else:
-            release_candidate = ", release_candidate=%r" % (
-                self.release_candidate,)
+            release_candidate = ", release_candidate=%r" % (self.release_candidate,)
+
+        if self.post is None:
+            post = ""
+        else:
+            post = ", post=%r" % (self.post,)
 
         if self.dev is None:
             dev = ""
         else:
             dev = ", dev=%r" % (self.dev,)
 
-        return '%s(%r, %r, %d, %d%s%s)' % (
+        return "%s(%r, %r, %d, %d%s%s%s)" % (
             self.__class__.__name__,
             self.package,
             self.major,
             self.minor,
             self.micro,
             release_candidate,
-            dev)
+            post,
+            dev,
+        )
 
     def __str__(self):
-        return '[%s, version %s]' % (
-            self.package,
-            self.short())
+        return "[%s, version %s]" % (self.package, self.short())
 
     def __cmp__(self, other):
         """
         Compare two versions, considering major versions, minor versions, micro
-        versions, then release candidates. Package names are case insensitive.
+        versions, then release candidates, then postreleases, then dev
+        releases. Package names are case insensitive.
 
         A version with a release candidate is always less than a version
         without a release candidate. If both versions have release candidates,
         they will be included in the comparison.
+
+        Likewise, a version with a dev release is always less than a version
+        without a dev release. If both versions have dev releases, they will
+        be included in the comparison.
 
         @param other: Another version.
         @type other: L{Version}
@@ -265,8 +303,7 @@ class Version(object):
         if not isinstance(other, self.__class__):
             return NotImplemented
         if self.package.lower() != other.package.lower():
-            raise IncomparableVersions("%r != %r"
-                                       % (self.package, other.package))
+            raise IncomparableVersions("%r != %r" % (self.package, other.package))
 
         if self.major == "NEXT":
             major = _inf
@@ -277,6 +314,11 @@ class Version(object):
             release_candidate = _inf
         else:
             release_candidate = self.release_candidate
+
+        if self.post is None:
+            post = -1
+        else:
+            post = self.post
 
         if self.dev is None:
             dev = _inf
@@ -293,21 +335,20 @@ class Version(object):
         else:
             otherrc = other.release_candidate
 
+        if other.post is None:
+            otherpost = -1
+        else:
+            otherpost = other.post
+
         if other.dev is None:
             otherdev = _inf
         else:
             otherdev = other.dev
 
-        x = _cmp((major,
-                  self.minor,
-                  self.micro,
-                  release_candidate,
-                  dev),
-                 (othermajor,
-                  other.minor,
-                  other.micro,
-                  otherrc,
-                  otherdev))
+        x = _cmp(
+            (major, self.minor, self.micro, release_candidate, post, dev),
+            (othermajor, other.minor, other.micro, otherrc, otherpost, otherdev),
+        )
         return x
 
 
@@ -318,7 +359,7 @@ def getVersionString(version):
     @param version: A L{Version} object.
     @return: A string containing the package and short version number.
     """
-    result = '%s %s' % (version.package, version.short())
+    result = "%s %s" % (version.package, version.short())
     return result
 
 
@@ -347,7 +388,7 @@ def _get_version(dist, keyword, value):
     raise Exception("No _version.py found.")
 
 
-from ._version import __version__ # noqa
+from ._version import __version__  # noqa
 
 
 __all__ = ["__version__", "Version", "getVersionString"]

@@ -1,4 +1,4 @@
-#!/Users/pabloarancibiabarahona/Personal/MesaDeAyuda/env/bin/python3
+#!/home/mbecerra/Documents/Memoria/mesa-de-ayuda-api/env/bin/python
 from django.core import management
 
 if __name__ == "__main__":

@@ -1,12 +1,8 @@
-#!/Users/pabloarancibiabarahona/Personal/MesaDeAyuda/env/bin/python
-# EASY-INSTALL-ENTRY-SCRIPT: 'Twisted==20.3.0','console_scripts','ckeygen'
-__requires__ = 'Twisted==20.3.0'
+#!/home/mbecerra/Documents/Memoria/mesa-de-ayuda-api/env/bin/python
+# -*- coding: utf-8 -*-
 import re
 import sys
-from pkg_resources import load_entry_point
-
+from twisted.conch.scripts.ckeygen import run
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(
-        load_entry_point('Twisted==20.3.0', 'console_scripts', 'ckeygen')()
-    )
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(run())
