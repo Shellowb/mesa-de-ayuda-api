@@ -167,6 +167,7 @@ class BotView(View):
       self.send_message(msg['text'], t_chat["id"], msg['keyboard'])
 
     add.delay(4,6)
+    print("HEY")
 
   @staticmethod
   def get_process_keyboard():
