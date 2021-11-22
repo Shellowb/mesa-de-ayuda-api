@@ -4,5 +4,6 @@ local.md
 #Ambiente virtual
 env/*
 
-API/__pycache__/*
+API/__pycache__/
+bot/__pycache__/
 githubtoken
