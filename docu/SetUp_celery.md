@@ -137,7 +137,7 @@ pip install flower
 Puedes usarlo de varias maneras pero recomendamos estas dos:
 ```sh
 # como un "worker" de celery
-celery -A API flower  --address=127.0.0.6 --port=5566
+celery -A API flower --address=127.0.0.6 --port=5566
 # como un container en docker
 docker run -p 5555:5555 mher/flower
 ```

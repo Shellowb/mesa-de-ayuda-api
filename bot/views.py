@@ -30,7 +30,7 @@ from django.contrib.auth.models import User
 from bot.models import Chat, Messages
 from bot.serializers import ChatSerializer, MessagesSerializer
 
-from bot.tasks import add
+from bot.tasks import send_notification_test
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
@@ -126,6 +126,11 @@ class BotView(View):
         messages = [
           {"text": 'Okey, te contactare con un@ asistente. Por favor ingresa tu consulta acontinuación', "keyboard": {}}
         ]
+      elif message == '/notificacion':
+        notification = send_notification_test()
+        messages = [
+          {"text": f'{notification["msg"]}', "keyboard": {}}
+        ]
       else:
         self.send_message_website(message, t_chat)
         messages = [
@@ -166,8 +171,6 @@ class BotView(View):
     for msg in messages:
       self.send_message(msg['text'], t_chat["id"], msg['keyboard'])
 
-    add.delay(4,6)
-    print("HEY")
 
   @staticmethod
   def get_process_keyboard():
