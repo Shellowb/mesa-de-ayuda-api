@@ -112,7 +112,7 @@ class BotView(View):
       if message == '/start':
         messages = [
           {"text": 'Hola, soy Turing y estoy aqui para ayudarte con tus dudas frecuentes', "keyboard": {}},
-          {"text": 'Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC en https://mesadeayuda.cadcc.cl', "keyboard": {}},
+          {"text": 'Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC en [mesadeayuda\.cl](https://mesadeayuda.cadcc.cl)', "keyboard": {}},
           {"text": 'Actualmente puedo ayudarte con /preguntasFrecuentes de...', "keyboard": self.get_process_keyboard()},
           {"text": 'En caso de no poder contestar tu consulta, puedo contactar a un /asistente por este mismo canal', "keyboard": {}}
         ]
@@ -123,6 +123,13 @@ class BotView(View):
       elif message == '/asistente':
         messages = [
           {"text": 'Okey, te contactare con un@ asistente. Por favor ingresa tu consulta acontinuación', "keyboard": {}}
+        ]
+      # Test Command
+      elif message == '/notificacion':
+        notification = send_notification_test()
+        print(notification['msg'])
+        messages = [
+          {"text": f'{notification["msg"]}', "keyboard": {}}
         ]
       else:
         self.send_message_website(message, t_chat)
@@ -260,7 +267,7 @@ class BotView(View):
     data = {
       "chat_id": chat_id,
       "text": message,
-      "parse_mode": "Markdown",
+      "parse_mode": "MarkdownV2",
       'reply_markup': (None, keyboard)
     }
     response = requests.post(

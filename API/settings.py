@@ -61,7 +61,12 @@ INSTALLED_APPS = [
     'instances.apps.InstancesConfig',
     'category.apps.CategoryConfig',
     'bot.apps.BotConfig',
-    'channels'
+    'channels',
+    # celery
+    'celery',
+    # 'django_celery_results', 
+    'django_celery_beat',
+    'botUsers',
 ]
 
 SITE_ID = 1
