@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'celery',
     # 'django_celery_results', 
     'django_celery_beat',
+    'botUsers',
 ]
 
 SITE_ID = 1

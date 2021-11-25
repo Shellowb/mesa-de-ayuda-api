@@ -1,7 +1,7 @@
 from django.db import models
 from process.models import Process
 
-
+# CHAT
 class Messages(models.Model):
   chat_id = models.IntegerField(default=0)
   text = models.TextField(blank=False, default='')
@@ -18,3 +18,4 @@ class Chat(models.Model):
   last_name = models.CharField(max_length=70, blank=False, default='')
   username = models.CharField(max_length=70, blank=False, default='')
 
+# TASKS

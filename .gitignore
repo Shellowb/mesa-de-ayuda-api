@@ -7,3 +7,5 @@ env/*
 API/__pycache__/
 bot/__pycache__/
 githubtoken
+
+instances/__pycache__/
