@@ -26,3 +26,7 @@ Profile/migrations/__pycache__/
 githubtoken
 
 bot/migrations/__pycache__/
+
+botUsers/__pycache__/
+
+botUsers/migrations/__pycache__/
