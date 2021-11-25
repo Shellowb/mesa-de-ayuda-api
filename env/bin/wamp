@@ -1,4 +1,4 @@
-#!/Users/pabloarancibiabarahona/Personal/MesaDeAyuda/env/bin/python
+#!/home/mbecerra/Documents/Memoria/mesa-de-ayuda-api/env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

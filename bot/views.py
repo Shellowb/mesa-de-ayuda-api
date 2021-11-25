@@ -30,6 +30,8 @@ from django.contrib.auth.models import User
 from bot.models import Chat, Messages
 from bot.serializers import ChatSerializer, MessagesSerializer
 
+from bot.tasks import send_notification_test
+
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
 def index(request):
@@ -170,6 +172,7 @@ class BotView(View):
 
     for msg in messages:
       self.send_message(msg['text'], t_chat["id"], msg['keyboard'])
+
 
   @staticmethod
   def get_process_keyboard():
