@@ -30,3 +30,9 @@ bot/migrations/__pycache__/
 botUsers/__pycache__/
 
 botUsers/migrations/__pycache__/
+botUsers/migrations/0003_subscription_chat.py
+botUsers/migrations/0004_auto_20211129_1106.py
+botUsers/migrations/0005_botuser__c.py
+botUsers/migrations/0006_auto_20211129_1116.py
+botUsers/migrations/0007_auto_20211129_1121.py
+botUsers/migrations/0008_auto_20211129_1125.py

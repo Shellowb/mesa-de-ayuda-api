@@ -24,18 +24,33 @@ def send_notification_test():
 
 @shared_task
 def suscribe_test(tg_id=187579960, target=None):
+    ERR_USER = "Error al guardar el usuario"
+    ERR_SUSBCRIPTION = "Error en el procesamiento de la suscripcion, intente más tarde"
     instance = Instance.objects.get(name='Proceso de Titulación primavera 2021')
+    chat = tg_id['chat_id']
+    user = tg_id['id']
+
     if target is None:
-        target = Steps.objects.get(instance=instance).first()
+        target = Steps.objects.filter(instance=instance).first()
     
-    new_user = BotUser.objects.get(uid=tg_id)
-    if not new_user:
-        new_user = BotUser(uid=tg_id)
-        new_user.save()
-
-    new_subscription = Subscription(bot_user=new_user, instance=instance, target=target)
-    new_subscription.save()
-
+    try:
+        new_user = BotUser.objects.get(uid=user)
+    except Exception as e:
+        try:
+            new_user = BotUser(uid=user)
+            new_user.save()
+        except Exception as e1:
+            return ERR_USER
+    try:
+        print(new_user)
+        new_subscription = Subscription(bot_user=new_user, chat = chat ,instance=instance, target_element=target)
+        new_subscription.save()
+        new_subscription = Subscription.objects.get(uid=user)
+        message = f'Nueva suscripción {new_subscription}'
+    except Exception as e:
+        print(e)
+        message = f'ERR_SUSBCRIPTION'
+    return message
 
 def markup_clearner(text: str):
     especial_characters = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']

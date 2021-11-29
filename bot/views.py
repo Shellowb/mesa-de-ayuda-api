@@ -30,7 +30,7 @@ from django.contrib.auth.models import User
 from bot.models import Chat, Messages
 from bot.serializers import ChatSerializer, MessagesSerializer
 
-from bot.tasks import send_notification_test
+from bot.tasks import send_notification_test, suscribe_test
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
@@ -133,6 +133,11 @@ class BotView(View):
         messages = [
           {"text": f'{notification["msg"]}', "keyboard": {}}
         ]
+      elif message == '/suscripcion':
+          msg = suscribe_test(tg_id=t_chat)
+          messages = [
+            {"text": msg, "keyboard": {}}
+          ]
       else:
         self.send_message_website(message, t_chat)
         messages = [
