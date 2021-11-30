@@ -45,8 +45,8 @@ def suscribe_test(tg_id=187579960, target=None):
         print(new_user)
         new_subscription = Subscription(bot_user=new_user, chat = chat ,instance=instance, target_element=target)
         new_subscription.save()
-        new_subscription = Subscription.objects.get(uid=user)
-        message = f'Nueva suscripción {new_subscription}'
+        new_subscription = Subscription.objects.get(bot_user=new_user)
+        message = markup_clearner(f'Nueva suscripción {new_subscription}')
     except Exception as e:
         print(e)
         message = f'ERR_SUSBCRIPTION'
@@ -57,3 +57,4 @@ def markup_clearner(text: str):
     for ch in especial_characters:
         text = text.replace( ch , '\\' + ch)
     return text
+

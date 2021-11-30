@@ -136,6 +136,7 @@ DATABASES = {
         'NAME': env('DB_NAME'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
+        'ENFORCE_SCHEMA': False
     }
 }
 

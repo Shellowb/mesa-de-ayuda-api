@@ -2,6 +2,7 @@ from djongo import models
 from instances.models import Instance, Steps
 
 class BotUser(models.Model):
+    id = models.ObjectIdField(db_column="_id", primary_key=True)
     uid = models.IntegerField(default=0)
 
     class Meta:
