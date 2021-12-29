@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     # celery
     'celery',
     # 'django_celery_results', 
-    'django_celery_beat',
+    # 'django_celery_beat',
     'botUsers',
 ]
 
@@ -217,6 +217,8 @@ CELERY_RESULT_BACKEND = "mongodb"
 CELERY_MONGODB_BACKEND_SETTINGS = {
     "host": "127.0.0.1",
     "port": 27017,
-    "database": "jobs",
+    "database": "celery",
     "taskmeta_collection": "stock_taskmeta_collection",
 }
+CELERY_SEND_TASK_SENT_EVENT=True
+# GRAPHVIZ

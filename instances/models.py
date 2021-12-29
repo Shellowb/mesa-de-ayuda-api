@@ -11,6 +11,14 @@ class Instance(models.Model):
   created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='instance_created_by')
   updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='instance_updated_by')
 
+  @staticmethod
+  def get_all_published():
+    instances = Instance.objects.filter(published=True).order_by('-created_at')
+    str_list = ""
+    for instance in instances:
+      str_list += f'{instance.name} {instance.id}'
+    return str_list
+
 class Steps(models.Model):
   start_date = models.DateTimeField()
   end_date = models.DateTimeField(blank=True, null=True)

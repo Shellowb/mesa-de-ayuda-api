@@ -6,12 +6,19 @@ import json
 import websockets
 import asyncio
 import os
+
+# Models & Serializers
 from process.models import Process
-from process.serializers import ProcessSerializer
+from instances.models import Instance
+from bot.models import Chat, Messages
+from botUsers.models import SubscriptionLink, BotUserPermissions
 from category.models import Category
-from category.serializers import CategorySerializer
 from faq.models import FAQs
+from process.serializers import ProcessSerializer
+from category.serializers import CategorySerializer
 from faq.serializers import FAQSerializer
+from bot.serializers import ChatSerializer, MessagesSerializer
+
 from django.core.mail import send_mail
 from API.settings import EMAIL_HOST_USER, BOT_TOKEN
 
@@ -19,7 +26,7 @@ import requests
 from django.views import View
 from bot import consumers
 
-# Create your views here.
+
 from django.http.response import JsonResponse
 from django.utils.safestring import mark_safe
 from rest_framework.parsers import JSONParser
@@ -27,10 +34,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth.models import User
 
-from bot.models import Chat, Messages
-from bot.serializers import ChatSerializer, MessagesSerializer
 
-from bot.tasks import send_notification_test, suscribe_test
+from bot.tasks import subscribe, suscribe_test, markup_clearner, send_today_notifications
+from bot.test_tasks import add
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
@@ -84,6 +90,7 @@ def first_message(request, id_chat):
 class BotView(View):
   def post(self, request, *args, **kwargs):
     t_data = json.loads(request.body)
+    print(t_data)
     label = None
     question=None
     try:
@@ -128,16 +135,36 @@ class BotView(View):
         ]
       # Test Command
       elif message == '/notificacion':
-        notification = send_notification_test()
-        print(notification['msg'])
+        send_today_notifications()
+        send_today_notifications.delay()
+        add.delay(4,4)
         messages = [
-          {"text": f'{notification["msg"]}', "keyboard": {}}
-        ]
-      elif message == '/suscripcion':
+            {"text": 'notf', "keyboard": {}}
+          ]
+
+      elif message == '/subscription_options':
+        msg = ""
+        for choice in SubscriptionLink.Destiny.choices:
+          msg += f'{choice[0]} {choice[1]}\n'
+        # for instance in Instance.objects.all
+        messages = [
+            {"text": msg, "keyboard": {}}
+          ]
+      elif message == '/subscription_test':
           msg = suscribe_test(tg_id=t_chat)
           messages = [
             {"text": msg, "keyboard": {}}
           ]
+      elif message == 'subscription':
+        msg = subscribe(t_chat,t_chat,1)
+
+      elif message == '/settings':
+        msg = BotUserPermissions.set_permissions(user_id=t_chat,id=True, sub=True, sup=True)
+        print(msg)
+        msg = markup_clearner(msg)
+        messages = [
+          {"text": msg, "keyboard": {}}
+        ]
       else:
         self.send_message_website(message, t_chat)
         messages = [
