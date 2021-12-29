@@ -41,3 +41,4 @@ botUsers/migrations/0001_initial.py
 botUsers/migrations/0002_auto_20211125_1119.py
 botUsers/migrations/0001_initial.py
 botUsers/migrations/0002_auto_20211125_1119.py
+celerybeat-schedule
