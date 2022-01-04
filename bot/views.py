@@ -90,7 +90,7 @@ def first_message(request, id_chat):
 class BotView(View):
   def post(self, request, *args, **kwargs):
     t_data = json.loads(request.body)
-    print(t_data)
+    print("-----", t_data)
     label = None
     question=None
     try:
