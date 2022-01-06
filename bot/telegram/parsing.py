@@ -1,7 +1,7 @@
 from enum import Enum
 import re
 import json
-from telegram.Handlers import  (
+from bot.telegram.handlers import  (
     CommandHandler,
     LabelHandler
 )
@@ -10,7 +10,7 @@ from telegram.Handlers import  (
 class Expressions():
     """Expressions in telegram valid updates
     that can be recognizes by this bot.
-    They are stored as python regular expresions
+    They are stored as python regular expressions
     so then can be match again the api response.
     """
     # /command arg1 agr2 ... argn
@@ -29,7 +29,7 @@ class Updates():
     user_callback_query = re.compile(r'callback_query')
 
     @staticmethod
-    def get_user_message_fields(update):
+    def get_user_message_fields(update : bytes):
         """if the update is a valid message (review docs
         or telegram api), then extracts chat id and the 
         message text (in the case that were a command,
@@ -50,7 +50,7 @@ class Updates():
             return None
 
     @staticmethod
-    def get_user_callback_query(update):
+    def get_user_callback_query(update : bytes):
         """if the update is a valid callback query (review 
         docs or telegram api), then extracts chat id, data id
         (kind of text), and label.
@@ -73,37 +73,54 @@ class Updates():
         except Exception as e:
             return None
 
+
 class Parser:
-    """Decodes updates and expresions contains in the updates
+    """Decodes updates and expressions contains in the updates
     """
     command_handler = CommandHandler()
     label_handler = LabelHandler()
 
-    def parse_expression(self, expresion):
-        """take a telegram expresion in message
+    def parse_expression(self, expression: str, for_id: int):
+        """take a telegram expression in message
         o callback query data and parse it
         when recognize it, derives to a handler, then
-        the handler with create the apropiate expresion
+        the handler with create the apropiate expression
         and call its acction
 
         Args:
-            expresion (json): a telegram api update object
+            expression (json): a telegram api update object
         """
-        if Expressions.command.match(expresion) is not None:
-            self.command_handler.handle(expresion)
+        if Expressions.command.match(expression) is not None:
+            return self.command_handler.handle(expression, for_id)
 
-        elif Expressions.label.match(expresion) is not None:
-            self.label_handler.handle(expresion)
+        elif Expressions.label.match(expression) is not None:
+            return self.label_handler.handle(expression, for_id)
     
-    def decode_update(self, updates):
+    def decode_update(self, update: bytes):
         """get a telegram message and regonize the
         currently supported types
 
         Args:
             update (json): a telegram update object
         """
-        if Updates.user_message.search(updates) is not None:
-            return Updates.get_user_message_fields(updates)
+        
+        if Updates.user_message.search(update.decode()) is not None:
+            chat_id, expression = Updates.get_user_message_fields(update)
+            self.parse_expression(expression, chat_id)
+            # ret = {
+            #     'chat_id': chat_id,
+            #     'expression': expression,
+            #     'parsed_expression': parsed_expression
+            # }
+            return chat_id
 
-        elif Updates.user_callback_query.search(updates) is not None:
-            return Updates.get_user_callback_query(updates)
+        elif Updates.user_callback_query.search(update.decode()) is not None:
+            chat_id, text, label = Updates.get_user_callback_query(update)
+            self.parse_expression(label, chat_id)
+            # ret = {
+            #     'chat_id': chat_id,
+            #     'text': text,
+            #     'label': label,
+            #     'parsed_expression': parsed_expression
+            # }
+            return chat_id

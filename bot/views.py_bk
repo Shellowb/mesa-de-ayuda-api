@@ -6,7 +6,6 @@ import json
 import websockets
 import asyncio
 import os
-from channels.http import AsgiRequest
 
 # Models & Serializers
 from process.models import Process
@@ -38,10 +37,6 @@ from django.contrib.auth.models import User
 
 from bot.tasks import subscribe, suscribe_test, markup_clearner, send_today_notifications
 from bot.test_tasks import add
-
-from bot.telegram.parsing import Parser
-
-parser = Parser()
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
@@ -93,11 +88,122 @@ def first_message(request, id_chat):
 
 
 class BotView(View):
-  def post(self, request: AsgiRequest, *args, **kwargs):
-    update = request.body
-    # print(type(request), type(update), type(update.decode()))
-    parser.decode_update(update)
+  def post(self, request, *args, **kwargs):
+    t_data = json.loads(request.body)
+    print("-----", t_data)
+    label = None
+    question=None
+    try:
+      t_message = t_data['message']
+      t_chat = t_message['chat']
+      t_chat['chat_id'] = t_chat['id']
+      text = t_message["text"].strip()
+    except Exception as e:
+      try:
+        t_chat = t_data['callback_query']['message']['chat']
+        t_chat['chat_id'] = t_chat['id']
+        data = json.loads(t_data['callback_query']['data'])
+
+        text = data['id']
+        label = data['label']
+        if label=='Feedback':
+          question = data['question']
+      except Exception as e:
+        return JsonResponse({"ok": "POST request processed"})
+
+    self.message_processing(t_chat, text, label, question)
+
     return JsonResponse({"ok": "POST request processed"})
+
+  def message_processing(self, t_chat, message, label=None, question=None ):
+    messages = []
+    if label is None:
+      if message == '/start':
+        messages = [
+          {"text": 'Hola, soy Turing y estoy aqui para ayudarte con tus dudas frecuentes', "keyboard": {}},
+          {"text": 'Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC en [mesadeayuda\.cl](https://mesadeayuda.cadcc.cl)', "keyboard": {}},
+          {"text": 'Actualmente puedo ayudarte con /preguntasFrecuentes de...', "keyboard": self.get_process_keyboard()},
+          {"text": 'En caso de no poder contestar tu consulta, puedo contactar a un /asistente por este mismo canal', "keyboard": {}}
+        ]
+      elif message == '/preguntasFrecuentes':
+        messages = [
+          {"text": 'Actualmente puedo ayudarte con /preguntasFrecuentes de...', "keyboard": self.get_process_keyboard()}
+        ]
+      elif message == '/asistente':
+        messages = [
+          {"text": 'Okey, te contactare con un@ asistente. Por favor ingresa tu consulta acontinuación', "keyboard": {}}
+        ]
+      # Test Command
+      elif message == '/notificacion':
+        send_today_notifications()
+        send_today_notifications.delay()
+        add.delay(4,4)
+        messages = [
+            {"text": 'notf', "keyboard": {}}
+          ]
+
+      elif message == '/subscription_options':
+        msg = ""
+        for choice in SubscriptionLink.Destiny.choices:
+          msg += f'{choice[0]} {choice[1]}\n'
+        # for instance in Instance.objects.all
+        messages = [
+            {"text": msg, "keyboard": {}}
+          ]
+      elif message == '/subscription_test':
+          msg = suscribe_test(tg_id=t_chat)
+          messages = [
+            {"text": msg, "keyboard": {}}
+          ]
+      elif message == 'subscription':
+        msg = subscribe(t_chat,t_chat,1)
+
+      elif message == '/settings':
+        msg = BotUserPermissions.set_permissions(user_id=t_chat,id=True, sub=True, sup=True)
+        print(msg)
+        msg = markup_clearner(msg)
+        messages = [
+          {"text": msg, "keyboard": {}}
+        ]
+      else:
+        self.send_message_website(message, t_chat)
+        messages = [
+          {"text": 'He enviado el mensaje a nuestrxs asistentes, en breve te responderemos por este canal', "keyboard": {}}
+        ]
+    elif label == 'Process':
+      name = self.get_name_process(int(message))
+      messages = [
+          {"text": 'Sobre que área de {} quieres saber?'.format(name), "keyboard": self.get_category_keyboard(int(message))}
+      ]
+    elif label == 'Category':
+      name = self.get_name_category(int(message))
+      messages = [
+          {"text": 'Estas son las preguntas mas frecuentes de {}'.format(name), "keyboard": self.get_questions_keyboard(int(message))}
+      ]
+    elif label == 'Question':
+      messages = self.get_question(int(message))
+    elif label == 'Feedback':
+      if message == 'Yes':
+        self.like_question(int(question))
+        messages = [
+            {"text": 'Me alegra haberte ayudado... Si tienes mas consultas no dudes en preguntarme, revisar mis /preguntasFrecuentes o contactar a un /asistente', "keyboard": {}},
+        ]
+      if message == 'No':
+        self.dislike_question(int(question))
+        keyboard = {"inline_keyboard" : [
+          [{"text": "Si", "callback_data": json.dumps({"id": "/asistente", "label": None}) }, {"text": "No", "callback_data": json.dumps({"id": "No", "label": "Helper"}) }],
+        ]}
+        messages = [
+            {"text": 'Oh no, ¿Quieres que te contacte con un@ asistente para que resuelva tu consulta?', "keyboard": keyboard},
+        ]
+    elif label == 'Helper':
+      if message == 'No':
+        messages = [
+            {"text": 'Bueno, cualquier consulta puede revisar mis otras /preguntasFrecuentes o contactar a un /asistente', "keyboard": {}},
+        ]
+
+    for msg in messages:
+      self.send_message(msg['text'], t_chat["id"], msg['keyboard'])
 
 
   @staticmethod

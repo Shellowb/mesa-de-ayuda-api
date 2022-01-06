@@ -29,6 +29,9 @@ bot/migrations/__pycache__/
 
 botUsers/__pycache__/
 
+
+*/__pycache__/
+
 botUsers/migrations/
 botUsers/migrations/__pycache__/
 botUsers/migrations/0003_subscription_chat.py
@@ -42,4 +45,11 @@ botUsers/migrations/0002_auto_20211125_1119.py
 botUsers/migrations/0001_initial.py
 botUsers/migrations/0002_auto_20211125_1119.py
 celerybeat-schedule
+category/__pycache__/admin.cpython-38.pyc
+bot/telegram/__pycache__/__init__.cpython-38.pyc
+bot/telegram/__pycache__/commands.cpython-38.pyc
+bot/telegram/__pycache__/connection.cpython-38.pyc
+bot/telegram/__pycache__/handlers.cpython-38.pyc
+bot/telegram/__pycache__/parsing.cpython-38.pyc
+bot/telegram/__pycache__/utils.cpython-38.pyc
 category/__pycache__/admin.cpython-38.pyc
