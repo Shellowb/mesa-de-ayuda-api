@@ -95,10 +95,13 @@ def first_message(request, id_chat):
 class BotView(View):
   def post(self, request: AsgiRequest, *args, **kwargs):
     update = request.body
-    # print(type(request), type(update), type(update.decode()))
+    print("POST", update.decode())
     parser.decode_update(update)
     return JsonResponse({"ok": "POST request processed"})
 
+  def get(self, request: AsgiRequest, *args, **kwargs):
+    update = request.body
+    print("GET", update.decode())
 
   @staticmethod
   def get_process_keyboard():

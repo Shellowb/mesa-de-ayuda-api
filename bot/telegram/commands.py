@@ -1,6 +1,7 @@
 import re
+import json
 from abc import ABC, abstractmethod
-from bot.telegram.utils import get_process_keyboard
+from bot.telegram.utils import get_process_keyboard, markup_cleanner
 from bot.telegram.connection import send_message
 from django.http import response
 from botUsers.models import (
@@ -56,12 +57,14 @@ class Command(ABC):
 
 class StartCommand(Command):
     class StartKeyboard(Keyboard):
+
+        @property
         def inline_keyboard(self):
-            keyboard_json = get_process_keyboard()
-            self.text = keyboard_json['inline_keyboard']['text']
-            self.label = keyboard_json['inline_keyboard']['label']
-            self.callback_data = keyboard_json['inline_keyboard']['callback_data']
-            return keyboard_json
+            keyboard = get_process_keyboard()
+            # self.text = keyboard['inline_keyboard'][0][0]['text']
+            # self.label = keyboard['inline_keyboard'][0][0]['label']
+            # self.callback_data = keyboard['inline_keyboard'][0][0]['data']
+            return keyboard
 
     __name = '/start'
     __re = re.compile(r'\/start')
@@ -69,11 +72,11 @@ class StartCommand(Command):
 
     
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
     @name.setter
-    def name(self, new_name):
+    def name(self, new_name: str):
         self.__name = new_name
     
     @property
@@ -90,22 +93,21 @@ class StartCommand(Command):
     def response(self) :
         link_mesa_de_ayuda = 'https://mesadeayuda.cadcc.cl'
         welcome_message =  (
-            f'Hola, soy **Turing** y estoy aqui para ayudarte con tus procesos académicos.\n'
-            f'Actualmente te puedo ayudar con consultas, recordatorios o faq par los'
-            f'siguientes procesos:'
+            f'Hola, soy *Turing* y estoy aqui para ayudarte con tus procesos académicos \.\n'
+            f'Actualmente te puedo ayudar con consultas, recordatorios o faq par los '
+            f'siguientes procesos'
         )
         dont_forget_message = (
-            f'__Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC'
-            f'en [mesadeayuda\.cl]({link_mesa_de_ayuda})'
+            f'_Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC '
+            f'en [mesadeayuda\.cl]({link_mesa_de_ayuda}) '
             f'En caso de no poder contestar tu consulta, puedo contactar a un'
-            f' /asistente por este mismo canal__'
+            f' \/asistente por este mismo canal_'
         )
         responses = [
               { 'text' : welcome_message, 'keyboard' : self.__keyboard.inline_keyboard}
-            , { 'text' : dont_forget_message, 'keyboard' : ''}
+            , { 'text' : dont_forget_message, 'keyboard' : {}}
         ]
         return responses
-
 
 # class SettingsCommand(Command):
 #     msg = BotUserPermissions.set_permissions(user_id=t_chat,id=True, sub=True, sup=True)

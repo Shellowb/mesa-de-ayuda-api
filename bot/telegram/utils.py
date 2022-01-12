@@ -2,7 +2,7 @@ import json
 from process.models import Process
 from process.serializers import ProcessSerializer
 
-def markup_clearner(text: str):
+def markup_cleanner(text: str) -> str:
     especial_characters = [
         '_', '*', '[', ']', '(', ')',
         '~', '`', '>', '#', '+', '-',
@@ -21,14 +21,13 @@ def get_process_keyboard():
         [
             {
                   "text": process['name']
-                , "callback_data": json.dumps(
-                    {
+                , "callback_data" :
+                    json.dumps({
                           "id": str(process['id'])
                         , "label": "Process"
-                    }
-                ) 
+                    }, separators=(',', ':'))
             }
-        ] for process in processes_serializer.data
+        ] for process in processes_serializer.data  
     ]
     return {"inline_keyboard": keyboard}
 

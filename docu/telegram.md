@@ -101,6 +101,104 @@ At most one of the optional parameters can be present in any given update.
 | data | String | _Optional_. Data associated with the callback button. Be aware that a bad client can send arbitrary data in this field. |
 | game\_short\_name | String | _Optional_. Short name of a [Game](#games) to be returned, serves as the unique identifier for the game |
 
+### Keyboard message API Request example
+> Al enviar un mensaje a la API, hay ciertos casos, en que si el JSON no es válido la API muestra un mensaje de error en la respuesta, pero por alguna razón no siempre se recibe en el post, sino que llega como un get. Por lo tanto el get se puede usar para atrapar o leer ciertos errores. --> RE checkar.
+> It's very important not pretify the jsons. python function json dumps as example do not works well in telegram API for example
+    ```python
+    json.dumps(
+          {
+            "inline_keyboard":
+                [[
+                    {"text": "Si", "url": "https://core.telegram.org/bots"},
+                    {"text": "No", "url": "https://core.telegram.org/bots"}
+                ]]
+          }
+        )
+      )
+    # will return :
+    {'ok': False, 'error_code': 400, 'description': "Bad Request: can't parse reply keyboard markup JSON object"} 
+    # <Response [400]>
+
+    #Instead
+    json.dumps(
+          {
+            "inline_keyboard":
+                [[
+                    {"text": "Si", "url": "https://core.telegram.org/bots"},
+                    {"text": "No", "url": "https://core.telegram.org/bots"}
+                ]]
+          }
+        , separators=(',', ':'))
+      )
+    # will return:
+    {'ok': True, 'result': {'message_id': 845, 'from': {'id': 1231231235, 'is_bot': True, 'first_name': 'mesadeayuda_dev', 'username': 'mesadeayuda_dev_bot'}, 'chat': {'id': 1231123, 'first_name': 'Shellow', 'username': 'Shellowb', 'type': 'private'}, 'date': 12566431, 'text': 'Recuerda que puedes obtener mas información sobre la mesa de ayuda DCC en mesadeayuda.cl En caso de no poder contestar tu consulta, puedo contactar a un /asistente por este mismo canal', 'entities': [{'offset': 0, 'length': 74, 'type': 'italic'}, {'offset': 74, 'length': 14, 'type': 'text_link', 'url': 'https://mesadeayuda.cadcc.cl/'}, {'offset': 74, 'length': 14, 'type': 'italic'}, {'offset': 89, 'length': 64, 'type': 'italic'}, {'offset': 153, 'length': 10, 'type': 'bot_command'}, {'offset': 153, 'length': 10, 'type': 'italic'}, {'offset': 164, 'length': 20, 'type': 'italic'}], 'reply_markup': {'inline_keyboard': [[{'text': 'Si', 'url': 'https://core.telegram.org/bots'}, {'text': 'No', 'url': 'https://core.telegram.org/bots'}]]}}} 
+    # <Response [200]>
+    ```
+
+`https://api.telegram.org/bot1914846977:AAGW_BXn_ia8zECT5laArhrgIZEFXk3Yb1M/sendMessage`
+
+_Keyboard_
+
+```json
+{
+    "chat_id": 187579960,
+    "text": "message",
+    "parse_mode": "MarkdownV2",
+    "reply_markup": 
+        {
+            "keyboard":
+                [[
+                    {"text": "Si"},
+                    {"text": "No"}
+                ]]
+        }
+}
+```
+_Inline_keyboard_
+
+```json
+{
+    "chat_id": 187579960,
+    "text": "message",
+    "parse_mode": "MarkdownV2",
+    "reply_markup": 
+        {
+            "inline_keyboard":
+                [[
+                    {"text": "Si", "url": "https://core.telegram.org/bots"},
+                    {"text": "No", "url": "https://core.telegram.org/bots"}
+                ]]
+        }
+}
+```
+
+python full example
+```python
+def send_message(message, chat_id, keyboard_button={}):
+    data = {
+      "chat_id": chat_id,
+      "text": message,
+      "parse_mode": "MarkdownV2",
+      "reply_markup": (None,
+        json.dumps(
+          {
+            "inline_keyboard":
+                [[
+                    {"text": "Si", "url": "https://core.telegram.org/bots"},
+                    {"text": "No", "url": "https://core.telegram.org/bots"}
+                ]]
+          }
+        , separators=(',', ':'))
+      )
+    }
+    response = requests.post(
+      f"{env('TELEGRAM_URL')}{env('BOT_TOKEN')}/sendMessage", data=data
+    )    
+    print(response.json(), response)
+```
+
+
+
 ## Referencias
 [0]: https://core.telegram.org/bots
 [1]: https://core.telegram.org/bots/api
