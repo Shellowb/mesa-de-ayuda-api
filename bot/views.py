@@ -45,13 +45,6 @@ parser = Parser()
 
 TELEGRAM_URL = "https://api.telegram.org/bot"
 
-def index(request):
-    return render(request, 'chat/index.html', {})
-
-def room(request, room_name):
-    return render(request, 'chat/room.html', {
-        'room_name': room_name
-    })
 
 def send_mail_notification(message, chat):
   first_name = chat['first_name']
@@ -96,7 +89,7 @@ class BotView(View):
   def post(self, request: AsgiRequest, *args, **kwargs):
     update = request.body
     print("POST", update.decode())
-    parser.decode_update(update)
+    # parser.decode_update(update)
     return JsonResponse({"ok": "POST request processed"})
 
   def get(self, request: AsgiRequest, *args, **kwargs):

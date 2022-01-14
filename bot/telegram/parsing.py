@@ -1,10 +1,8 @@
-from enum import Enum
 import re
 import json
-from bot.telegram.handlers import  (
-    CommandHandler,
-    LabelHandler
-)
+from bot.telegram.handlers.commandHandler import CommandHandler
+from bot.telegram.handlers.callbackQueryHandler import LabelHandler
+from bot.telegram.handlers.unknown import UnknowExpressionHandler
 
 
 class Expressions():
@@ -27,6 +25,14 @@ class Updates():
     update_id = re.compile(r'update_id')
     user_message = re.compile(r'message')
     user_callback_query = re.compile(r'callback_query')
+
+    class UpdateProccesingResult:
+        recognized : bool
+        type : str
+        # chat_id = int
+        def __init__(self, recognized=False, type=None) -> None:
+            self.recognized = recognized
+            self.type = type
 
     @staticmethod
     def get_user_message_fields(update : bytes):
@@ -79,6 +85,7 @@ class Parser:
     """
     command_handler = CommandHandler()
     label_handler = LabelHandler()
+    unknow_expression_handler = UnknowExpressionHandler()
 
     def parse_expression(self, expression: str, for_id: int):
         """take a telegram expression in message
@@ -95,6 +102,9 @@ class Parser:
 
         elif Expressions.label.match(expression) is not None:
             return self.label_handler.handle(expression, for_id)
+        
+        else:
+            return self.unknow_expression_handler.handle(expression, for_id)
     
     def decode_update(self, update: bytes):
         """get a telegram message and regonize the
@@ -105,22 +115,20 @@ class Parser:
         """
         
         if Updates.user_message.search(update.decode()) is not None:
-            chat_id, expression = Updates.get_user_message_fields(update)
-            self.parse_expression(expression, chat_id)
-            # ret = {
-            #     'chat_id': chat_id,
-            #     'expression': expression,
-            #     'parsed_expression': parsed_expression
-            # }
-            return chat_id
+            message_fields = Updates.get_user_message_fields(update)
+            if message_fields is not None:
+                chat_id, expression = message_fields
+                self.parse_expression(expression, chat_id)
+                return Updates.UpdateProccesingResult(True, Updates.user_message)
+            return Updates.UpdateProccesingResult()
 
         elif Updates.user_callback_query.search(update.decode()) is not None:
-            chat_id, text, label = Updates.get_user_callback_query(update)
-            self.parse_expression(label, chat_id)
-            # ret = {
-            #     'chat_id': chat_id,
-            #     'text': text,
-            #     'label': label,
-            #     'parsed_expression': parsed_expression
-            # }
-            return chat_id
+            callback_query = Updates.get_user_callback_query(update)
+            if callback_query is not None:
+                chat_id, text, label = callback_query
+                self.parse_expression(label, chat_id)
+                return Updates.UpdateProccesingResult(True, Updates.user_callback_query)
+            return Updates.UpdateProccesingResult()
+
+        else:
+            return Updates.UpdateProccesingResult()
