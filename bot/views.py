@@ -88,8 +88,8 @@ def first_message(request, id_chat):
 class BotView(View):
   def post(self, request: AsgiRequest, *args, **kwargs):
     update = request.body
-    print("POST", update.decode())
-    # parser.decode_update(update)
+    # print("POST", update.decode())
+    parser.decode_update(update)
     return JsonResponse({"ok": "POST request processed"})
 
   def get(self, request: AsgiRequest, *args, **kwargs):

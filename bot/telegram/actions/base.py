@@ -12,19 +12,9 @@ class CatchUnknownExpression(Action):
     ERR_UNDECODED = f'El mensaje recibido se enviará a un asistente'
     def do_action(self, *args, **kwargs):
         chat_id = kwargs['chat_id']
-        send_message(self.ERR_UNDECODED, chat_id, keyboard_button='{'+'}')
+        send_message(self.ERR_UNDECODED, chat_id, keyboard='{'+'}')
         
-# class SettingsCommand(Command):
-#     msg = BotUserPermissions.set_permissions(user_id=t_chat,id=True, sub=True, sup=True)
-#     print(msg)
-#     msg = markup_clearner(msg)
-#     messages = [
-#         {"text": msg, "keyboard": {}}
-#     ]
 
-# class FAQCommand(Command):
-#     message = f'Actualmente puedo ayudarte con /preguntasFrecuentes de...'
-#     keyboard = None
 
 # class SubscriptionCommand(Command):
 #     msg = ""
@@ -44,8 +34,3 @@ class CatchUnknownExpression(Action):
 #         {"text": 'notf', "keyboard": {}}
 #     ]
 
-# class AssistantCommand(Command):
-#     message = f'Okey, te contactare con un@ asistente. Por favor ingresa tu consulta acontinuación'
-
-# class HelpCommand(Command):
-#     pass

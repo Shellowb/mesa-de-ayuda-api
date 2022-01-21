@@ -1,20 +1,18 @@
 import re
 from typing import List, Dict
 from .base import Action 
-from bot.telegram.objects.keyboard import Keyboard
 from bot.telegram.connection import send_message
 
 
 class Command(Action):
     __name : str    # '/command'
     __re_name : re.Pattern # r'\/command'
-    __keyboard : Keyboard
+    __help : str
 
     def do_action(self, *args, **kwargs):
         chat_id = kwargs['chat_id']
-        new_messages = self.response()
-        for msg  in new_messages:
-          send_message(msg['text'], chat_id, keyboard_button=msg['keyboard'])  
+        for msg  in self.response:
+          send_message(msg['text'], chat_id, keyboard=msg['keyboard'])  
 
     @property
     def name(self):
@@ -33,17 +31,12 @@ class Command(Action):
         self.__re_name = new_re
 
     @property
-    def keyboard(self) -> Keyboard:
-        return self.__keyboard
-
-    @keyboard.setter
-    def keyboard(self, new_keyboard:Keyboard):
-        self.__keyboard = new_keyboard
+    def response(self) -> List[Dict]:
+        return [{ 'text' : '', 'keyboard' : ''}]
 
     @property
-    def response(self) -> List[Dict]:
-        return [{ 'text' : 'None', 'keyboard' : self.__keyboard}]
-
+    def help(self) -> str:
+        return self.__help
 
 class NotDefinedCommand(Command):
     """[summary]
@@ -66,13 +59,7 @@ class NotDefinedCommand(Command):
         def __str__(self):
             return self.error
             
-    class EmptyKeyboard(Keyboard):
-
-        @property
-        def inline_keyboard(self):
-            return '{'+'}'
-
-    keyboard = EmptyKeyboard()
+    keyboard = '{'+'}'
     __error : CommandError
 
     @property
@@ -86,7 +73,7 @@ class NotDefinedCommand(Command):
     @property
     def response(self) -> List[Dict]:
         text = str(self.error)
-        return [{ 'text' : text, 'keyboard' : self.keyboard.inline_keyboard}]
+        return [{ 'text' : text, 'keyboard' : self.keyboard}]
 
     def do_action(self, *args, **kwargs):
         return super().do_action(*args, **kwargs)

@@ -1,5 +1,6 @@
 from __future__ import print_function
 from datetime import datetime, timedelta, time
+from errno import ENOEXEC
 import re
 from djongo import models
 from instances.models import Instance
@@ -13,16 +14,33 @@ class BotUser(models.Model):
     id = models.ObjectIdField(db_column="_id", primary_key=True)
     uid = models.IntegerField(default=0)
 
-    def get_create_bot_user(user):
-        ERR_USER = '"Error al guardar el usuario"'
+    def create_bot_user(user):
+        ERR_USER = 'Error al guardar el usuario'
         try:
             new_user = BotUser.objects.get(uid=user)
+            return "Usuario ya creado"
         except Exception as e:
             try:
                 new_user = BotUser(uid=user)
                 new_user.save()
+                return "Usuario guardado exitosamente"
             except Exception as e1:
                 return ERR_USER
+
+    def delete_bot_user(user):
+        try:
+            old_user = BotUser.objects.get(uid=user)
+            old_user.delete()
+            return "Usuario Eliminado exitosamente"
+        except Exception as e:
+            return 'Error al borrar el usuario'
+
+    def get_bot_user(user):
+        try:
+            return BotUser.objects.get(uid=user)
+        except Exception as e:
+            return None
+
     
     class Meta:
         verbose_name = ("Bot User")
@@ -76,7 +94,6 @@ class Subscription(models.Model):
         verbose_name_plural = ("Subscriptions")
 
 
-
 class Notification(models.Model):
     """Saves the next message and next notification time for 
     a determined subscription"""
@@ -120,6 +137,7 @@ class Notification(models.Model):
         )
         return notifications
 
+
 class BotUserPermissions(models.Model):
     """Bot User Permission set. Determines
     which functionalities are allowed by 
@@ -134,20 +152,46 @@ class BotUserPermissions(models.Model):
         
     def __str__(self):
         id = 'Allowed' if self.identity else 'Not Allowed'
-        sub = 'Allowed' if self.identity else 'Not Allowed'
-        sup = 'Allowed' if self.identity else 'Not Allowed'
+        sub = 'Allowed' if self.subscriptions else 'Not Allowed'
+        sup = 'Allowed' if self.support_contact else 'Not Allowed'
         return f'User:{self.user} id:{id} subscriptions:{sub} support contact:{sup}'
 
-    @staticmethod
-    def set_permissions(user_id, id=False, sub=False, sup=False):
-        ERR_USER = 'This user appears to be inexisting'
+    def create_permissions(user):
         try:
-            user = BotUser.objects.get(id=user_id)
+            BotUserPermissions.objects.get(user=user)
+            return 'Permisos ya habilitados'
+        except Exception as e:
+            try:
+                permissions = BotUserPermissions(user=user)
+                permissions.save()
+                return 'Permisos habilitados exitosamente'
+            except Exception as e2:
+                return 'Los permisos no se pudieron habilitar'
+        
+
+    @staticmethod
+    def get_permissions(chat_id):
+        try:
+            user = BotUser.objects.get(uid=chat_id)
             permissions = BotUserPermissions.objects.get(user=user)
         except Exception as e:
-            return 'User:' + ERR_USER + f'\nid: Not Allowed \nsubscriptions: Not Allowed \nsupport contact: Not Allowed'
-        permissions.identity = id
-        permissions.subscriptions = sub
-        permissions.support_contact = sup
+            return None
+        return permissions
 
-        return f'Permissions set, {permissions}'
+    @staticmethod
+    def set_permissions(chat_id, id=None, sub=None, sup=None):
+        print(id, sub, sup )
+        try:
+            user = BotUser.objects.get(uid=chat_id)
+            permissions = BotUserPermissions.objects.get(user=user)
+            if id is not None:
+                permissions.identity = id
+            if sub is not None:
+                permissions.subscriptions = sub
+            if sup is not None:
+                permissions.support_contact = sup
+            permissions.save()
+            return permissions
+        except Exception as e:
+            return None
+        

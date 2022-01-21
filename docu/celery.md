@@ -25,7 +25,9 @@ Primero hay que elegir un broker, celery siempre funciona con uno. En este caso 
 
 Luego se instala para python
 ```sh
-pip install celery celery-with-mongodb django-celery-beat flower
+pip install celery[redis] celery-with-mongodb flower celerybeat-mongo
+# Notas: es celerybeat-mongo y no celerybeatmongo
+
 # más adelante veremos porque los otros modulos.
 ```
 
@@ -158,6 +160,12 @@ Al correr una tarea verás algo cómo esto:
 ![flower dashboard](img/flower-dashboard.png)
 ![flower task](img/flower-task.png)
 
+## Celery Beat
+Celery beat es un servicio a parte que se se encarga de las tareas programadas para celery, en estricto rigor, puede ser un servicio a parte. En este caso, usamos celery beat como un worker más. Además configuramos que use un scheduler asociado a mongo.
+```sh
+celery -A API beat -S celerybeatmongo.schedulers.MongoScheduler -l info
+```
+
 
 
 
@@ -170,3 +178,17 @@ Al correr una tarea verás algo cómo esto:
 [5]: https://docs.celeryproject.org/en/2.2/userguide/tasks.html#task-result-backends
 [6]: https://flower.readthedocs.io/en/latest/install.html#usage-examples
 [7]: https://www.djongomapper.com/djongo-comparison/
+
+
+https://docs.celeryproject.org/en/master/index.html
+https://docs.celeryproject.org/en/stable/userguide/configuration.html#std-setting-beat_scheduler
+https://docs.celeryproject.org/en/stable/reference/celery.schedules.html#celery.schedules.crontab
+https://docs.celeryproject.org/en/stable/userguide/configuration.html#mongodb-backend-settings
+https://github.com/mongodb/mongo-python-driver/tree/master
+https://betterprogramming.pub/a-beginners-guide-to-connect-celery-with-mongodb-b7afd197c061
+https://medium.com/codex/periodic-tasks-celery-beat-and-mongodb-dynamic-schedulers-24cdf396dcc
+https://docs.celeryproject.org/en/2.3-archived/configuration.html
+https://github.com/mongodb/mongo-python-driver/tree/master
+https://github.com/zmap/celerybeat-mongo
+https://flower.readthedocs.io/en/latest/
+https://docs.celeryproject.org/en/stable/userguide/monitoring.html#features

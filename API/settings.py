@@ -62,10 +62,7 @@ INSTALLED_APPS = [
     'category.apps.CategoryConfig',
     'bot.apps.BotConfig',
     'channels',
-    # celery
     'celery',
-    # 'django_celery_results', 
-    # 'django_celery_beat',
     'botUsers',
 ]
 

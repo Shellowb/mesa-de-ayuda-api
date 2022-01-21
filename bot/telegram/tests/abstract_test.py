@@ -52,11 +52,11 @@ class Command:
     __keyboard : Keyboard
 
     def do_action(self, *args, **kwargs):
-        # chat_id = kwargs['chat_id']
-        # new_messages = self.response()
-        # for msg  in new_messages:
-        #   send_message(msg['text'], chat_id, keyboard_button=msg['keyboard'])  
-        pass
+        chat_id = kwargs['chat_id']
+        for msg  in self.response:
+        #   send_message(msg['text'], chat_id, keyboard_button=msg['keyboard']) 
+            pass
+        print("action Done!")
 
     @property
     def name(self):
@@ -99,7 +99,7 @@ class StartCommand(Command):
 
     name = '/start'
     re = re.compile(r'\/start')
-    Keyboard = StartKeyboard()
+    keyboard = StartKeyboard()
 
     def do_action(self, *args, **kwargs):
         return super().do_action(*args, **kwargs)
@@ -119,7 +119,7 @@ class StartCommand(Command):
             f' \/asistente por este mismo canal_'
         )
         responses = [
-              { 'text' : welcome_message, 'keyboard' : self.__keyboard.inline_keyboard}
+              { 'text' : welcome_message, 'keyboard' : self.keyboard.inline_keyboard}
             , { 'text' : dont_forget_message, 'keyboard' : {}}
         ]
         return responses
@@ -183,3 +183,12 @@ class UnknownCommand(NotDefinedCommand):
 class UnDecodedCommand(NotDefinedCommand):
     ERR_UNDECODED = f'El mensaje recibido no se pudo procesar.'
     error = NotDefinedCommand.CommandError(ERR_UNDECODED)
+
+if __name__ == '__main__':
+    start = StartCommand()
+    assert start.name == '/start'
+    assert start.re == re.compile(r'\/start')
+    assert start.re.match(start.name)
+    assert start.keyboard is not None
+    start.response
+    start.do_action(chat_id=12374)

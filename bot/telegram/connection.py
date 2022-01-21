@@ -2,7 +2,7 @@ import json
 from API.settings import env
 import requests
 
-def send_message(message, chat_id:int, keyboard:str):
+def send_message(message:str, chat_id:int, keyboard:str):
     # print(keyboard_button)
     data = {
       "chat_id": chat_id,
