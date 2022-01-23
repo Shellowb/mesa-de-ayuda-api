@@ -7,7 +7,7 @@ from bot.telegram.actions.commands.help import HelpCommand
 from bot.telegram.actions.commands.settings import SettingsCommand
 from bot.telegram.actions.commands.faq import FAQCommand
 from bot.telegram.actions.commands.assitant import AssistantCommand
-
+from bot.telegram.actions.commands.subscription import SubscriptionCommand
 
 
 
@@ -18,6 +18,7 @@ class CommandHandler(Handler):
     settings_command = SettingsCommand()
     faq_command = FAQCommand()
     assitant_command = AssistantCommand()
+    subscription_command = SubscriptionCommand()
 
     def handle(self, expression: str, for_id: int) -> None:
 
@@ -37,8 +38,13 @@ class CommandHandler(Handler):
         elif self.faq_command.re.match(expression):
             self.faq_command.do_action(chat_id=for_id)
 
-        # expression <-> /faq 
+        # expression <-> /assistant 
         elif self.assitant_command.re.match(expression):
             self.assitant_command.do_action(chat_id=for_id)
+        
+        # expression <-> /subscription
+        elif self.subscription_command.re.match(expression):
+            self.subscription_command.do_action(chat_id=for_id, expression=expression)
+            
         else:
            self.unknown_command.do_action(chat_id=for_id)

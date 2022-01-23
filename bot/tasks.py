@@ -9,8 +9,7 @@ from instances.serializers import InstanceSerializer, StepsSerializer
 from botUsers.models import BotUser, Notification, Subscription, SubscriptionLink, BotUserPermissions
 
 # Send Messages
-TELEGRAM_URL = "https://api.telegram.org/bot"
-from API.settings import BOT_TOKEN
+from API.settings import BOT_TOKEN, TELEGRAM_URL
 import json
 import requests
 

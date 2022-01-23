@@ -11,3 +11,6 @@ class Process(models.Model):
   published = models.BooleanField(default=True)
   created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='created_by')
   updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='updated_by')
+
+  def __str__(self):
+    return self.name

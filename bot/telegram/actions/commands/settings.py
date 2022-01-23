@@ -7,7 +7,7 @@ from bot.telegram.connection import send_message
 
 class SettingsCommand(Command):
     name = '/settings'
-    re = regex.compile(r'\/settings\s*(help)*')
+    re = regex.compile(r'\/settings')
     re_help = regex.compile(r'\/settings\shelp')
     re_enable = regex.compile(r'\/settings\senable')
     re_disable = regex.compile(r'\/settings\sdisable')

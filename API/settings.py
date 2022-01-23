@@ -82,6 +82,7 @@ MIDDLEWARE = [
 ]
 
 API_URL = env('API_URL')
+TELEGRAM_URL = env('TELEGRAM_URL')
 
 ALLOWED_HOSTS = [
   '127.0.0.1',

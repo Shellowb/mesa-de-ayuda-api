@@ -1,3 +1,5 @@
+from datetime import timedelta
+import django
 from django.db import models
 from process.models import Process
 from django.contrib.auth.models import User
@@ -19,6 +21,17 @@ class Instance(models.Model):
       str_list += f'{instance.name} {instance.id}'
     return str_list
 
+  @staticmethod
+  def get_instance_by_name(name, publish=True):
+    try:
+      return Instance.objects.get(name=name, published=publish)
+    except Exception as e:
+      return None
+
+  def __str__(self):
+    publish = 'Sí' if self.published else 'No'
+    return f'{self.name} publicada: {publish}'
+
 class Steps(models.Model):
   start_date = models.DateTimeField()
   end_date = models.DateTimeField(blank=True, null=True)
@@ -29,6 +42,20 @@ class Steps(models.Model):
   last_update = models.DateTimeField(auto_now=True)
   created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_created_by')
   updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_updated_by')
+
+  @staticmethod
+  def get_closer_step(instance: Instance):
+    steps = Steps.objects.filter(instance=instance)
+    closer_step = None
+    today = django.utils.timezone.now()
+    max_step = django.utils.timezone.now() + timedelta(weeks=52)
+    for step in steps:
+      if step.end_date >= today:
+        if step.end_date < max_step:
+          max_step = step.end_date 
+          closer_step = step
+    return closer_step
+
 
 class News(models.Model):
   description = models.TextField(blank=False, default='')
