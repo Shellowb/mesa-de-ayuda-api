@@ -69,10 +69,43 @@ class SubscriptionLink(models.Model):
         verbose_name = ('Subscription link')
         verbose_name_plural = ('Subscription links')
 
+
     @staticmethod
-    def valid_link(target, frequency):
-        valid_target = True if target in SubscriptionLink.Destiny.choices else False
-        # valid_frequency = True if 
+    def destiny_label_to_value(label):
+        # label <-> TO_FAQ.label -> TO_FAQ (value)
+        if label == SubscriptionLink.Destiny.TO_FAQ.label:
+            return SubscriptionLink.Destiny.TO_FAQ
+        # label <-> TO_NEWS.label -> TO_NEWS (value)
+        if label == SubscriptionLink.Destiny.TO_NEWS.label:
+            return SubscriptionLink.Destiny.TO_NEWS
+        # label <-> TO_STEPS.label -> TO_STEPS (value)
+        if label == SubscriptionLink.Destiny.TO_STEPS.label:
+            return SubscriptionLink.Destiny.TO_STEPS
+        # label <-> TO_REQUISITES.label -> TO_REQUISITES (value)
+        if label == SubscriptionLink.Destiny.TO_REQUISITES.label:
+            return SubscriptionLink.Destiny.TO_REQUISITES
+
+    @property
+    def label(self):
+        # TO_FAQ -> TO_FAQ.label
+        if self.destiny == SubscriptionLink.Destiny.TO_FAQ:
+            return SubscriptionLink.Destiny.TO_FAQ.label
+        # TO_NEWS -> TO_NEWS.label
+        if self.destiny == SubscriptionLink.Destiny.TO_NEWS:
+            return SubscriptionLink.Destiny.TO_NEWS.label
+        # TO_STEPS -> TO_STEPS.label
+        if self.destiny == SubscriptionLink.Destiny.TO_STEPS:
+            return SubscriptionLink.Destiny.TO_STEPS.label
+        # TO_REQUISITES -> TO_REQUISITES.label
+        if self.destiny == SubscriptionLink.Destiny.TO_REQUISITES:
+            return SubscriptionLink.Destiny.TO_REQUISITES.label
+
+    @staticmethod
+    def get_subscription_link(instance:Instance, destiny: int):
+        try:
+            return SubscriptionLink.objects.get(instance=instance, destiny=destiny)
+        except Exception as e:
+            return None
 
 class Subscription(models.Model):
     """Holds the user subscription configuration.
@@ -93,6 +126,41 @@ class Subscription(models.Model):
         verbose_name = ("Subscription")
         verbose_name_plural = ("Subscriptions")
 
+    @staticmethod
+    def get_subscription(chat, target_element):
+        try:
+            return Subscription.objects.get(chat=chat, target_element=target_element)
+        except Exception as e:
+            return None
+
+    @staticmethod
+    def create_subscription(
+        user: BotUser,
+        chat: int,
+        target: SubscriptionLink,
+        frequency: timedelta):
+        ERR_SUBSCRIPTION = "Error en la creación de la subscripción"
+        ERR_ALREADY_EXISTS = "La subscripción ya había sido creada"
+        ERR_NOTIFICATION = "Error en la creación de la subscripción"
+        try:
+            new_subscription = Subscription.get_subscription(chat,target)
+            if new_subscription is not None:
+                return ERR_ALREADY_EXISTS
+            else:
+                new_subscription = Subscription(
+                    bot_user = user,
+                    chat = chat,
+                    target_element = target,
+                    frequency = frequency
+                )
+                msg = "Default Notification message"
+                next_notification = Notification.calc_next_notification
+                code, _ = Notification.create_notification(new_subscription,msg,next_notification)
+                if code < 0:
+                    return ERR_NOTIFICATION
+                return "Subscripción Exitosa"
+        except Exception as e:
+            return ERR_SUBSCRIPTION
 
 class Notification(models.Model):
     """Saves the next message and next notification time for 
@@ -106,7 +174,8 @@ class Notification(models.Model):
         holder = self.subscription.bot_user
         return f'Notification sch: {next} for: {holder}'
 
-    def update_notification(self, msg="", next=None):
+
+    def update_notification(self, msg=None, next=None):
         """Set a new message and a new next notification date
 
         Args:
@@ -114,17 +183,47 @@ class Notification(models.Model):
             next ([type], optional): [description]. Defaults to None.
         """
         if next is None:
-            next = self.next_notification + 1
-        
-        self.msg = msg
-        self.next_notification = next
+            self.next_notification += self.subscription.frequency
+        else:
+            self.next_notification = next
 
-    # def get_steps_notification(freq=None):
-    #     DEFAULT_WEEKS=2
-    #     if freq is None:
-    #         freq = timedelta(weeks=DEFAULT_WEEKS)
-    #     msg = ""
-        
+        if msg is not None:
+            self.msg = msg
+    
+    def calc_next_notification(target: SubscriptionLink, frequency: timedelta):
+        step = Instance.get_closer_step(target.instance)
+        if step.end_date > frequency + tz.now():
+            return frequency + tz.now()
+        if step.end_date <= frequency + tz.now():
+            pass # next closer step
+        if step.end_date < frequency + tz.now():
+            pass # next 
+
+    @staticmethod
+    def get_notification(subscription: Subscription):
+        try:
+            return Notification.objects.get(subscription=subscription)
+        except Exception as e:
+            return None
+
+    @staticmethod
+    def create_notification(subscription: Subscription, msg: str, next_notification: datetime):
+        ERR_ALREADY_EXISTS = (-1, None)
+        ERR_NOTIFICATION = (-2, None)
+        try:
+            if Notification.get_notification(subscription) is not None:
+                return ERR_ALREADY_EXISTS
+            else:
+                new_notification = Notification(
+                    subscription=subscription,
+                    msg=msg,
+                    next_notification=next_notification
+                )
+                new_notification.save()
+                return (0, new_notification)
+        except Exception as e:
+            return ERR_NOTIFICATION
+
 
     @staticmethod
     def get_today_notifications():

@@ -43,20 +43,6 @@ class Steps(models.Model):
   created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_created_by')
   updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_updated_by')
 
-  @staticmethod
-  def get_closer_step(instance: Instance):
-    steps = Steps.objects.filter(instance=instance)
-    closer_step = None
-    today = django.utils.timezone.now()
-    max_step = django.utils.timezone.now() + timedelta(weeks=52)
-    for step in steps:
-      if step.end_date >= today:
-        if step.end_date < max_step:
-          max_step = step.end_date 
-          closer_step = step
-    return closer_step
-
-
 class News(models.Model):
   description = models.TextField(blank=False, default='')
   instance = models.ForeignKey(Instance, on_delete=models.CASCADE, default=None)
