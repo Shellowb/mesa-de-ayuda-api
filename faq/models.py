@@ -1,9 +1,11 @@
-from django.db import models
+from djongo import models
+from API.pk_model import ApiModel
+from django.contrib.auth.models import User
 from process.models import Process
 from category.models import Category
-from django.contrib.auth.models import User
 
-class FAQs(models.Model):
+
+class FAQs(ApiModel):
   question = models.CharField(max_length=200,blank=False, default='')
   answer = models.TextField(blank=False, default='')
   created_at = models.DateTimeField(auto_now_add=True)

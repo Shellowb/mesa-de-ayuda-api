@@ -1,7 +1,8 @@
-from django.db import models
+from djongo import models
+from API.pk_model import ApiModel
 from django.contrib.auth.models import User
 
-class Process(models.Model):
+class Process(ApiModel):
   name = models.CharField(max_length=70, blank=False, default='')
   description = models.TextField(blank=False, default='')
   banner_description = models.TextField(blank=False, default='')

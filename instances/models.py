@@ -1,10 +1,10 @@
-from datetime import timedelta
-import django
-from django.db import models
-from process.models import Process
+from djongo import models
+from API.pk_model import ApiModel
 from django.contrib.auth.models import User
+from process.models import Process
 
-class Instance(models.Model):
+
+class Instance(ApiModel):
   name = models.CharField(max_length=200, blank=False, default='')
   created_at = models.DateTimeField(auto_now_add=True)
   last_update = models.DateTimeField(auto_now=True)
@@ -29,10 +29,10 @@ class Instance(models.Model):
       return None
 
   def __str__(self):
-    publish = 'Sí' if self.published else 'No'
-    return f'{self.name} publicada: {publish}'
+    publish = 'publicada' if self.published else 'No publicada'
+    return f'{self.name}, status: {publish}'
 
-class Steps(models.Model):
+class Steps(ApiModel):
   start_date = models.DateTimeField()
   end_date = models.DateTimeField(blank=True, null=True)
   name = models.CharField(max_length=200, blank=False, default='')
@@ -43,7 +43,7 @@ class Steps(models.Model):
   created_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_created_by')
   updated_by = models.ForeignKey(User, default=None, blank=True, on_delete=models.DO_NOTHING, related_name='step_updated_by')
 
-class News(models.Model):
+class News(ApiModel):
   description = models.TextField(blank=False, default='')
   instance = models.ForeignKey(Instance, on_delete=models.CASCADE, default=None)
   created_at = models.DateTimeField(auto_now_add=True)

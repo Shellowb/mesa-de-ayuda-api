@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'channels',
     'celery',
     'botUsers',
+    'content'
 ]
 
 SITE_ID = 1
@@ -136,6 +137,11 @@ DATABASES = {
         'PORT': env('DB_PORT'),
         'ENFORCE_SCHEMA': False
     }
+}
+
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
 }
 
 

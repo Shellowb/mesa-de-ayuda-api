@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from bot.models import Messages, Chat
+
+
 class MessagesSerializer(serializers.ModelSerializer):
 
   class Meta:

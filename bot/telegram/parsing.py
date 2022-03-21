@@ -81,7 +81,7 @@ class Updates():
 
 
 class Parser:
-    """Decodes updates and expressions contains in the updates
+    """Decodes updates and expressions contained in the updates
     """
     command_handler = CommandHandler()
     label_handler = LabelHandler()
@@ -97,14 +97,20 @@ class Parser:
         Args:
             expression (json): a telegram api update object
         """
-        if Expressions.command.match(expression) is not None:
-            return self.command_handler.handle(expression, for_id)
+        ERR = "Parsing Expresion Error details:\n %s"
+        try:
+            if Expressions.command.match(expression) is not None:
+                return self.command_handler.handle(expression, for_id)
 
-        elif Expressions.label.match(expression) is not None:
-            return self.label_handler.handle(expression, for_id)
-        
-        else:
-            return self.unknow_expression_handler.handle(expression, for_id)
+            elif Expressions.label.match(expression) is not None:
+                return self.label_handler.handle(expression, for_id)
+            
+            else:
+                return self.unknow_expression_handler.handle(expression, for_id)
+        except Exception as e:
+            print(f"{e}")
+            return ERR.format("f{e}")
+            
     
     def decode_update(self, update: bytes):
         """get a telegram message and regonize the

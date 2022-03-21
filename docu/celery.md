@@ -3,12 +3,11 @@
 Para configurar celery es necesario realizar varios pasos. Puedes revisar la documentación para tener más detalles. Aquí expicamos como configurarlo para este proyecto.
 
 ## Qué es celery
-En simple es una cola de tareas un gestor de tareas. Eso significa que tu le pides algo para hacer y celery lo hará de manera asincrona o sincrona, y podrás consumir ese resultado más tarde. También puedes programar tareas.
+En simple es una cola de tareas o un gestor de tareas. Eso significa que tu le pides algo para hacer y celery lo hará de manera asincrona o sincrona dependiendo de como tu lo configures y podrás consumir ese resultado más tarde. También puedes programar tareas para que se realizen con cierta frecuencia.
 
 > **¿Por qué celery?** La verdad es que hay varias soluciones para programar tareas en python. Pero la mayoría asumen que ese script es que funciona de "servidor", dicho de otra forma, se hace cargo de la ejecución de las tareas. En una app web del estilo nuestro, este tipo de arquitectura pone una carga pesada del lado del servidor. porque debe atender las demandas del usuario, que son crecientes (por eso Mongodb) y además procesar notificaciones o solicitudes de suscripción etc.
-En ese sentido,  es mejor que la instancia que vela por las tareas funcione más como un servicio dedicado (un servicio de Linux por ejemplo). En una arquitectura distribuída, esto incluso significaría que a través del Broker las tareas pordrían estar en un servidor separado. Esto hace al sistema mucho más robustop y escalable sin complicar la lógica de código.
-
-Es simple porque a nivel del proyecto las tareas se expresan como funciones de python que puedes llamar de una view, de un form o de cualquier parte del flujo dando muchísima libertad de acción. Una tarea de celery se ve así a nivel de código:
+En ese sentido,  es mejor que la instancia que vela por las tareas funcione más como un servicio dedicado (un servicio de Linux por ejemplo). En una arquitectura distribuída, esto incluso significaría que a través del Broker las tareas pordrían estar en un servidor separado. Esto hace al sistema mucho más robusto y escalable sin complicar la lógica de código.
+> Otra ventaja es que a nivel del proyecto las tareas se expresan como funciones de python que puedes llamar de una view, de un form o de cualquier parte del flujo dando muchísima libertad de acción. Una tarea de celery se ve así a nivel de código:
 
 ```python
 from celery import Celery
@@ -34,7 +33,7 @@ pip install celery[redis] celery-with-mongodb flower celerybeat-mongo
 ## Configurar Celery
 _refs: [get started][3], ,_
 
-Este sin duda es el peor dolor de cabeza para novatos, porque la documentación es bastante confusa para un setup que no es el standard (que usa el [ORM][0] de [Djago][2]). Pero trataremos de hacerlo lo más simple posible. Celery esta pensado para proyectos realmente complejos y muy customizables. Eso implica que hay muchísimos parámetros de configuración, por lo que los siguientes son solo algunos de ellos. Los demás se usan por default.
+Este sin duda es el peor dolor de cabeza para novatos, porque la documentación es bastante confusa para un setup que no es el standard (std=que usa el [ORM][0] de [Djago][2]). Pero trataremos de hacerlo lo más simple posible. Celery esta pensado para proyectos realmente complejos y muy customizables. Eso implica que hay muchísimos parámetros de configuración, por lo que los siguientes son solo algunos de ellos. Los demás se usan por default.
 
 
 Primero añade la configuración de Django:
@@ -130,6 +129,8 @@ Deberías ver algo cómo esto:
 
 ## Monitorear Celery (tareas)
 Para hacer un mejor monitorero, celery recomienda varios modulos y además para guardar los resultados pymongo. Pero en nuestro caso se usa `djongo` que no es muy compatible por celery, por lo tanto no se puede guardar tareas con el tipico modulo de results de django (que funciona con el ORM, djongo usa un [ODM][7]). Para monitorear el las tareas, entonces no se puede usar el admin de djago. Por eso preferimos instalar [flower][]
+
+> **warning!:** Una de las desventajas de flower es que funciona en base a eventos y desde que lo tienes corriendo. Eso implica que si bajas el servicio que administra flower se borrará toda la historia de las tareas que quieres monitorear, al menos en el panel, siempre puedes mirar las tareas en la BD de forma directa (pero no con el admin de django cause _djongo_).
 
 Se instala así:
 ```sh

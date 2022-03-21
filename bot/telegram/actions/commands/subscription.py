@@ -2,9 +2,10 @@ from datetime import timedelta
 import re as regex
 from celery import shared_task
 from instances.models import Instance
-from botUsers.models import BotUser, BotUserPermissions, SubscriptionLink, Subscription
+from botUsers.models import BotUser, BotUserPermissions
+from content.models import Subscription, SubscriptionOption
 from bot.telegram.actions.command import Command
-from bot.telegram.utils import send_message
+from bot.telegram.utils import send_message, markdown_cleaner
 
 class SubscriptionCommand(Command):
     name = '/subscription'
@@ -14,20 +15,18 @@ class SubscriptionCommand(Command):
     re_c = regex.compile(r'\/subscription\s')
     re_create = regex.compile(r'\/subscription\s\".*\":\".*\"')
     re_create_divider = regex.compile(r':')
+    re_available = regex.compile(r'\/subscription\ssubscribed')
 
     DEFAULT_SUBSCRIPTION_FREQUENCY = timedelta(minutes=1)
 
     help = (
-        f'`subscription`\n'
-        f'asjdaksjdajks'
+        f'`\/subscription`\n'
+        f'`\/subscription help`\n'
+        f'`\/subscription options`\n'
     )
 
-    def do_action(
-        self,
-        chat_id=None,
-        expression=None,
-        *args, **kwargs):
-
+    def do_action(self, chat_id=None, expression=None, *args, **kwargs):
+        """"""
         if expression is not None:
             # expression <-> /subscription help
             if self.re_help.match(expression):
@@ -35,7 +34,7 @@ class SubscriptionCommand(Command):
             
             # expression <-> /subscription options
             elif self.re_options.match(expression):
-                send_message(self.options, chat_id, {})
+                send_message(self.options_txt, chat_id, {})
             
             # expression <-> /subscription "Process Name":"Target Name"
             elif self.re_create.match(expression):
@@ -43,6 +42,10 @@ class SubscriptionCommand(Command):
                 value = value.replace('"', "")
                 instance, target = self.re_create_divider.split(value)
                 self.suscribe(chat_id, instance, target)
+
+            elif self.re_available.match(expression):
+                print("exp -> avilable suscriptions")
+                send_message(self.user_subscription(chat_id), chat_id, {})
 
             else:
                 for msg  in self.response:
@@ -52,27 +55,18 @@ class SubscriptionCommand(Command):
     def response(self):
         return [
             {
-                "text": " Subscription defatult response",
+                "text": "Para suscribirse a algún proceso usa \/subscription \"\<instancia del proceso\>\":\"\<Link\>\"",
                 "keyboard": {}
             }
         ]
 
     @property
-    def options(self):
-        instances = Instance.objects.filter(published=True)
-        available_links = []
-        print(instances)
-        for instance in instances:
-                instance_available_links = self.aviable_links(instance)
-                print(instance_available_links)
-                if instance_available_links is not None:
-                    for instance_link in instance_available_links:
-                        available_links.append(
-                            (instance.name, instance_link)
-                        )
+    def options_txt(self):
+        available_options = SubscriptionOption.aviable_options(only_published=True)
         text = "*Opciones de Suscripción*\n"
-        for link in available_links:
-            text += f'{link[0]}:{link[1]}\n'
+        print(available_options)
+        for option in available_options:
+            print(option)
         return text
 
     def is_subscription_enabled(chat_id) -> bool:
@@ -81,31 +75,37 @@ class SubscriptionCommand(Command):
             return permissions.subscriptions
         return False
 
-    def aviable_links(self, instance: Instance) -> list[str]:
-        links = SubscriptionLink.objects.filter(instance=instance)
-        labels = []
-        if links.exists():
-            for link in links:
-                labels.append(link.destiny_label)
-            return labels
-        return None
+    def user_subscription(self, chat_id) -> str:
+        susbscriptions = Subscription.objects.filter(chat=chat_id)
+        sus_str = ""
+        if susbscriptions.exists():
+            for suscription in susbscriptions:
+                sus_str += suscription.description
+        return markdown_cleaner(sus_str)
+
 
     # @shared_task
     def suscribe(self, chat_id, instance: str, target:str):
         ERR_SUSBCRIPTION = "Error en el procesamiento de la suscripcion, intente más tarde"
         ERR_NO_INSTANCE = "La Instancia que estás intentando suscribir no existe o no se encuentra publicada"
         ERR_NO_TARGET = "Esta instancia no tiene la opción indicada, habilitada para subscripción"
-        valid_instances = Instance.objects.filter(published=True)
-        links = {}
-        for vinstance in valid_instances:
-            vinstance_links = self.aviable_links(vinstance)
-            if vinstance_links is not None:
-                links[vinstance.name] = []
-            for vi_link in vinstance_links:
-                links[vinstance.name].append(vi_link)
-        print(links)
+        
+        # get all published instances and its links
+        published_instances = Instance.objects.filter(published=True)
+        instance_links = {}
+    
+        if published_instances.exists(): # chek if there are published instances
+            for pinstance in published_instances:
+                pinstance_links = self.aviable_links(pinstance)
+                if pinstance_links is not None: # if instance has links then saves instance name and a list
+                    instance_links[pinstance.name] = pinstance_links # saves all instances links into a list for the instance name (key)
+        print(f"/suscribe instances and links {instance_links}")
+        
+        # makes the match between existing instances and its links
+        # and user input
         try:
-            if target in links[instance]:
+            # if user target in aviable links for instance user given name
+            if target in instance_links[instance]:
                 user = BotUser.get_bot_user(chat_id)
                 instance = Instance.get_instance_by_name(instance, publish=True)
                 destiny = SubscriptionLink.destiny_label_to_value(target)
@@ -115,15 +115,17 @@ class SubscriptionCommand(Command):
                         user=user,
                         chat=chat_id,
                         target=link,
-                        frequency=self.DEFAULT_SUBSCRIPTION_FREQUENCY
+                        # frequency=self.DEFAULT_SUBSCRIPTION_FREQUENCY
                     )
                     send_message(msg, chat_id, keyboard_button={})
 
                 else:
                     send_message(ERR_SUSBCRIPTION, chat_id, keyboard_button={})
             else:
+                # means that the user given target doesnt exist in aviable links
                 send_message(ERR_NO_TARGET, chat_id, keyboard_button={})
         except KeyError:
+            # means that the user give an instance name that doesn exists in database
             send_message(ERR_NO_INSTANCE, chat_id, keyboard_button={})
         
 

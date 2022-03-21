@@ -152,3 +152,10 @@ def send_message(message, chat_id, keyboard_button={}):
         f"{TELEGRAM_URL}{BOT_TOKEN}/sendMessage", data=data
     )    
     res = response.json()
+
+def markdown_cleaner(text: str) -> str:
+    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!' , '`']
+    new_text = ""
+    for char in text:
+        new_text += f"\{char}" if char in special_chars else char
+    return new_text
