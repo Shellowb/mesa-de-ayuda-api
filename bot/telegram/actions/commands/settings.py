@@ -1,5 +1,3 @@
-from ctypes import BigEndianStructure
-from pyexpat.errors import messages
 import re as regex
 from ..command import Command
 from botUsers.models import BotUser, BotUserPermissions
@@ -35,7 +33,7 @@ class SettingsCommand(Command):
                 msg = BotUser.create_bot_user(chat_id)
                 user = BotUser.get_bot_user(chat_id)
                 if user is not None:
-                    msg2 = BotUserPermissions.create_permissions(user)
+                    msg2 = BotUserPermissions.create_permissions(chat_id)
                     send_message(msg2, chat_id, keyboard={})
                 send_message(msg, chat_id, keyboard={})
                 

@@ -6,7 +6,8 @@ from django.db.models.lookups import In
 import django.utils.timezone as tz
 from instances.models import Instance, Steps
 from instances.serializers import InstanceSerializer, StepsSerializer
-from botUsers.models import BotUser, Notification, Subscription, SubscriptionLink, BotUserPermissions
+from botUsers.models import BotUser, BotUserPermissions
+from content.models import Subscription, SubscriptionOption, Notification
 
 # Send Messages
 from API.settings import BOT_TOKEN, TELEGRAM_URL
@@ -43,17 +44,17 @@ def suscribe_test(tg_id=187579960, target=None):
     ERR_USER = "Error al guardar el usuario"
     ERR_SUSBCRIPTION = "Error en el procesamiento de la suscripcion, intente más tarde"
     instance = Instance.objects.get(name='Proceso de Titulación primavera 2021')
-    target = SubscriptionLink.Destiny.TO_STEPS
+    target = SubscriptionOption.Destiny.TO_STEPS
     chat = tg_id['chat_id']
     user = tg_id['id']
 
     if target is None:
-       target = SubscriptionLink.Destiny.TO_STEPS
+       target = SubscriptionOption.Destiny.TO_STEPS
 
     try:
-        link = SubscriptionLink.objects.get(instance=instance,destiny=target)
+        link = SubscriptionOption.objects.get(instance=instance,destiny=target)
     except:
-        link = SubscriptionLink()
+        link = SubscriptionOption()
         link.instance = instance
         link.destiny = target
         link.save() 
@@ -157,7 +158,7 @@ def subscribe(tg_id, target):
 
     #  bot_user = models.ForeignKey(BotUser, on_delete=models.CASCADE)
     # chat = models.IntegerField()
-    # target_element = models.ForeignKey(SubscriptionLink, on_delete=models.CASCADE)
+    # target_element = models.ForeignKey(SubscriptionOption, on_delete=models.CASCADE)
     # frequency = models.DurationField()
     # created_at = models.DateTimeField(auto_now_add=True)
     
