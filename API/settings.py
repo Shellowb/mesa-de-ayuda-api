@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     # celery
     'celery',
     # 'django_celery_results', 
-    'django_celery_beat',
+    # 'django_celery_beat',
 ]
 
 SITE_ID = 1
